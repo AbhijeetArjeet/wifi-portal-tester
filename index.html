@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="WiFi Tester">
-  <meta name="description" content="Mobile-first Progressive Web App for testing captive portal Wi-Fi authentication systems.">
+  <meta name="description" content="Mobile-first Progressive Web App for captive portal Wi-Fi authentication and auto-connect.">
   
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -391,6 +391,25 @@
       color: var(--text-main);
     }
 
+    /* Failsafe Triggers Box */
+    .failsafe-box {
+      background: var(--bg-input);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid var(--border-color);
+      font-size: 13px;
+    }
+
+    .failsafe-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-main);
+    }
+
     /* Stats Grid */
     .stats-grid {
       display: grid;
@@ -525,47 +544,64 @@
     <button id="pwaInstallBtn" class="install-btn">Install App</button>
   </header>
 
-  <!-- Personal Quick-Connect & Keep-Alive Card -->
+  <!-- Personal Account Setup & Auto-Connect Card -->
   <div class="card">
     <div class="card-header">
       <div class="card-title">
-        <span>⭐ Personal Quick-Connect & Failsafe</span>
+        <span>👤 My Personal Account & Auto-Connect</span>
       </div>
-      <span id="keepAliveBadge" class="badge badge-inactive">Offline Monitor</span>
+      <span id="savedAccountBadge" class="badge badge-inactive">No Saved Account</span>
     </div>
 
     <p style="font-size:13px; color:var(--text-muted);">
-      Save your personal username & password locally so the PWA automatically connects you every time you open the app or get disconnected.
+      Write your personal username and password once. Save it to your phone so the PWA connects you automatically every time you open the app or get disconnected by portal timeouts!
     </p>
 
     <div class="form-group">
       <label for="savedUser">Username:</label>
-      <input type="text" id="savedUser" class="text-input" placeholder="e.g. user_alpha_101">
+      <input type="text" id="savedUser" class="text-input" placeholder="Enter your username">
     </div>
 
     <div class="form-group">
       <label for="savedPass">Password:</label>
-      <input type="password" id="savedPass" class="text-input" placeholder="e.g. pass_secret_991">
+      <input type="password" id="savedPass" class="text-input" placeholder="Enter your password">
     </div>
 
     <div class="checkbox-row">
       <input type="checkbox" id="chkAutoLaunch" checked>
-      <label for="chkAutoLaunch">Auto-login automatically when PWA opens</label>
+      <label for="chkAutoLaunch">⚡ Auto-login automatically when PWA opens</label>
     </div>
 
     <div class="checkbox-row">
       <input type="checkbox" id="chkKeepAlive" checked>
-      <label for="chkKeepAlive">Enable Failsafe Keep-Alive (Auto re-login on disconnect/timeout)</label>
+      <label for="chkKeepAlive">🛡️ Enable 3-Way Failsafe Auto-Relogin (Prevents 1-2h timeouts)</label>
     </div>
 
     <div class="setting-row">
-      <label for="keepAliveInterval">Keep-Alive re-login interval (minutes):</label>
+      <label for="keepAliveInterval">Background re-login timer (minutes):</label>
       <input type="number" id="keepAliveInterval" class="setting-input" value="15" min="2" max="180">
+    </div>
+
+    <!-- Active Failsafe Triggers -->
+    <div class="failsafe-box">
+      <div style="font-weight:600; font-size:12px; color:var(--text-muted); text-transform:uppercase;">Active Failsafe Triggers:</div>
+      <div class="failsafe-item">
+        <span>⏱️</span>
+        <span><b>Background Timer:</b> Periodically re-authenticates every <span id="dispIntervalMins">15</span> mins.</span>
+      </div>
+      <div class="failsafe-item">
+        <span>📶</span>
+        <span><b>Wi-Fi Reconnect Listener:</b> Re-logs in instantly when phone joins Wi-Fi.</span>
+      </div>
+      <div class="failsafe-item">
+        <span>📱</span>
+        <span><b>App Foreground Trigger:</b> Re-authenticates when phone is unlocked or app opened.</span>
+      </div>
     </div>
 
     <div class="btn-row">
       <button id="btnConnectSaved" class="btn btn-success">
-        ⚡ Connect Saved Account
+        ⚡ Connect My Account Now
       </button>
     </div>
 
@@ -583,7 +619,7 @@
   <div class="card">
     <div class="card-header">
       <div class="card-title">
-        <span>📁 CSV Dataset Testing</span>
+        <span>📁 CSV Dataset Batch Testing</span>
       </div>
       <span id="csvStatusBadge" class="badge badge-inactive">No CSV Loaded</span>
     </div>
@@ -628,7 +664,7 @@
   <div class="card" id="credentialCard">
     <div class="card-header">
       <div class="card-title">
-        <span>🔑 Selected Credential</span>
+        <span>🔑 Active Credential Status</span>
       </div>
       <span id="endpointBadge" class="badge badge-inactive">POST mode=191</span>
     </div>
@@ -655,7 +691,7 @@
 
     <div id="lastResultBanner" class="status-banner">
       <span class="status-icon" id="resultIcon">⏱️</span>
-      <div id="resultText">Save credentials or load CSV to begin authentication.</div>
+      <div id="resultText">Write and save your account or load a CSV to begin authentication.</div>
     </div>
   </div>
 
@@ -714,16 +750,20 @@
 
   <details>
     <summary>
-      <span>📖 Auto-Relogin & Failsafe Features</span>
+      <span>📖 Auto-Relogin & 3-Way Failsafe System</span>
       <span>▼</span>
     </summary>
     <div class="details-content">
-      <p><b>Saved Personal Credentials:</b></p>
-      <p>Save your personal <code>Username</code> and <code>Password</code> directly in your device's browser localStorage.</p>
-      <p><b>Auto-Connect on Launch:</b></p>
-      <p>When enabled, every time you open the PWA on your phone, it automatically sends the login payload so you connect immediately.</p>
-      <p><b>Failsafe Keep-Alive:</b></p>
-      <p>If the Wi-Fi portal logs you out after a couple of hours, the background keep-alive monitor automatically re-submits your login request periodically and whenever your phone re-connects to Wi-Fi.</p>
+      <p><b>1. Saved Personal Credentials:</b></p>
+      <p>Write your username and password once into the app and tap <b>Save Credentials</b>. It is stored safely on your phone's browser localStorage.</p>
+      <p><b>2. Auto-Connect on Launch:</b></p>
+      <p>Opening the PWA from your mobile home screen sends the login payload automatically so you are connected immediately.</p>
+      <p><b>3. Three Failsafe Triggers (Overcomes 1-2 Hour Timeouts):</b></p>
+      <ul>
+        <li><b>Background Timer:</b> Sends a periodic login request every 15, 30, or 60 minutes to maintain active session state.</li>
+        <li><b>Wi-Fi Reconnect Listener:</b> Sends a login request as soon as your phone connects to Wi-Fi.</li>
+        <li><b>App Foreground Trigger:</b> Re-authenticates whenever you unlock your phone or switch back to the PWA.</li>
+      </ul>
     </div>
   </details>
 
@@ -776,7 +816,8 @@ const savedPass = document.getElementById("savedPass");
 const chkAutoLaunch = document.getElementById("chkAutoLaunch");
 const chkKeepAlive = document.getElementById("chkKeepAlive");
 const keepAliveInterval = document.getElementById("keepAliveInterval");
-const keepAliveBadge = document.getElementById("keepAliveBadge");
+const dispIntervalMins = document.getElementById("dispIntervalMins");
+const savedAccountBadge = document.getElementById("savedAccountBadge");
 const btnConnectSaved = document.getElementById("btnConnectSaved");
 const btnSaveLocal = document.getElementById("btnSaveLocal");
 const btnClearSaved = document.getElementById("btnClearSaved");
@@ -818,7 +859,10 @@ btnClearSaved.addEventListener("click", clearSavedCredentials);
 btnConnectSaved.addEventListener("click", connectSavedAccount);
 
 chkKeepAlive.addEventListener("change", toggleKeepAlive);
-keepAliveInterval.addEventListener("change", toggleKeepAlive);
+keepAliveInterval.addEventListener("input", () => {
+  dispIntervalMins.textContent = keepAliveInterval.value;
+  toggleKeepAlive();
+});
 
 csvFileInput.addEventListener("change", handleFileSelect);
 
@@ -843,17 +887,20 @@ testBtn.addEventListener("click", executeTests);
 togglePassBtn.addEventListener("click", togglePasswordVisibility);
 resetStatsBtn.addEventListener("click", resetSessionStats);
 
-// Network reconnect & window focus triggers for failsafe
+// 3-WAY FAILSAFE LISTENERS
+
+// Failsafe Trigger 2: Network Reconnect Listener (When phone joins Wi-Fi)
 window.addEventListener("online", () => {
   if (chkKeepAlive.checked && getSavedCredentials()) {
-    console.log("Network online detected. Triggering failsafe re-login...");
+    console.log("Failsafe Trigger 2: Wi-Fi Reconnect detected. Executing auto-login...");
     connectSavedAccount();
   }
 });
 
+// Failsafe Trigger 3: App Foreground / Phone Unlock Trigger
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && chkKeepAlive.checked && getSavedCredentials()) {
-    console.log("App foregrounded. Triggering failsafe re-login...");
+    console.log("Failsafe Trigger 3: App foregrounded/unlocked. Executing auto-login...");
     connectSavedAccount();
   }
 });
@@ -907,7 +954,9 @@ function saveCredentialsLocally() {
     intervalMins: parseInt(keepAliveInterval.value) || 15
   };
   localStorage.setItem("wifi_tester_personal_cred", JSON.stringify(data));
-  alert("Personal credentials saved locally!");
+  savedAccountBadge.textContent = "Saved Account Active";
+  savedAccountBadge.className = "badge badge-active";
+  alert("Account saved to phone! It will now auto-connect when you open the PWA or re-join Wi-Fi.");
   toggleKeepAlive();
 }
 
@@ -929,6 +978,13 @@ function loadSavedCredentialsUI() {
     chkAutoLaunch.checked = creds.autoLaunch !== false;
     chkKeepAlive.checked = creds.keepAlive !== false;
     keepAliveInterval.value = creds.intervalMins || 15;
+    dispIntervalMins.textContent = keepAliveInterval.value;
+
+    savedAccountBadge.textContent = "Saved Account Active";
+    savedAccountBadge.className = "badge badge-active";
+  } else {
+    savedAccountBadge.textContent = "No Saved Account";
+    savedAccountBadge.className = "badge badge-inactive";
   }
 }
 
@@ -937,9 +993,9 @@ function clearSavedCredentials() {
   savedUser.value = "";
   savedPass.value = "";
   if (keepAliveTimer) clearInterval(keepAliveTimer);
-  keepAliveBadge.textContent = "Offline Monitor";
-  keepAliveBadge.className = "badge badge-inactive";
-  alert("Saved credentials cleared.");
+  savedAccountBadge.textContent = "No Saved Account";
+  savedAccountBadge.className = "badge badge-inactive";
+  alert("Saved credentials cleared from this device.");
 }
 
 async function connectSavedAccount() {
@@ -947,7 +1003,7 @@ async function connectSavedAccount() {
   const p = savedPass.value.trim();
 
   if (!u || !p) {
-    alert("Please enter or save Username and Password first.");
+    alert("Please enter or save your Username and Password first.");
     return;
   }
 
@@ -965,24 +1021,21 @@ async function connectSavedAccount() {
   updateStatsAndUI(result, elapsedMs, u);
 }
 
+// Failsafe Trigger 1: Background Timer
 function toggleKeepAlive() {
   if (keepAliveTimer) {
     clearInterval(keepAliveTimer);
     keepAliveTimer = null;
   }
 
-  if (chkKeepAlive.checked && (savedUser.value.trim() || getSavedCredentials())) {
-    const mins = Math.max(parseInt(keepAliveInterval.value) || 15, 2);
-    keepAliveBadge.textContent = `Keep-Alive Active (${mins}m)`;
-    keepAliveBadge.className = "badge badge-active";
+  const mins = Math.max(parseInt(keepAliveInterval.value) || 15, 2);
+  dispIntervalMins.textContent = mins;
 
+  if (chkKeepAlive.checked && (savedUser.value.trim() || getSavedCredentials())) {
     keepAliveTimer = setInterval(() => {
-      console.log("Failsafe keep-alive trigger executing...");
+      console.log("Failsafe Trigger 1: Background timer executing auto-login...");
       connectSavedAccount();
     }, mins * 60 * 1000);
-  } else {
-    keepAliveBadge.textContent = "Monitor Disabled";
-    keepAliveBadge.className = "badge badge-inactive";
   }
 }
 
