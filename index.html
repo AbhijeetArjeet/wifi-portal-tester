@@ -535,17 +535,17 @@
     </div>
 
     <p style="font-size:13px; color:var(--text-muted);">
-      Save your personal Reg.No & App.No locally so the PWA automatically connects you every time you open the app or get disconnected.
+      Save your personal username & password locally so the PWA automatically connects you every time you open the app or get disconnected.
     </p>
 
     <div class="form-group">
-      <label for="savedUser">Username (Reg.No):</label>
-      <input type="text" id="savedUser" class="text-input" placeholder="e.g. 2500031388">
+      <label for="savedUser">Username:</label>
+      <input type="text" id="savedUser" class="text-input" placeholder="e.g. user_alpha_101">
     </div>
 
     <div class="form-group">
-      <label for="savedPass">Password (App.No):</label>
-      <input type="password" id="savedPass" class="text-input" placeholder="e.g. APP1001">
+      <label for="savedPass">Password:</label>
+      <input type="password" id="savedPass" class="text-input" placeholder="e.g. pass_secret_991">
     </div>
 
     <div class="checkbox-row">
@@ -635,11 +635,11 @@
 
     <div class="cred-box">
       <div class="cred-row">
-        <span class="cred-label">Username (Reg.No):</span>
+        <span class="cred-label">Username:</span>
         <span class="cred-value" id="dispUsername">--</span>
       </div>
       <div class="cred-row">
-        <span class="cred-label">Password (App.No):</span>
+        <span class="cred-label">Password:</span>
         <span class="cred-value">
           <span id="dispPassword">--</span>
           <button id="togglePassBtn" class="toggle-pass-btn" title="Toggle password visibility" style="display:none;">
@@ -719,7 +719,7 @@
     </summary>
     <div class="details-content">
       <p><b>Saved Personal Credentials:</b></p>
-      <p>Save your personal <code>Reg.No</code> and <code>App.No</code> directly in your device's browser localStorage.</p>
+      <p>Save your personal <code>Username</code> and <code>Password</code> directly in your device's browser localStorage.</p>
       <p><b>Auto-Connect on Launch:</b></p>
       <p>When enabled, every time you open the PWA on your phone, it automatically sends the login payload so you connect immediately.</p>
       <p><b>Failsafe Keep-Alive:</b></p>
@@ -896,7 +896,7 @@ function saveCredentialsLocally() {
   const u = savedUser.value.trim();
   const p = savedPass.value.trim();
   if (!u || !p) {
-    alert("Please enter both Username (Reg.No) and Password (App.No).");
+    alert("Please enter both Username and Password.");
     return;
   }
   const data = {
@@ -947,7 +947,7 @@ async function connectSavedAccount() {
   const p = savedPass.value.trim();
 
   if (!u || !p) {
-    alert("Please enter or save Username (Reg.No) and Password (App.No) first.");
+    alert("Please enter or save Username and Password first.");
     return;
   }
 
@@ -999,7 +999,7 @@ async function handleFileSelect() {
       csvStatusBadge.textContent = "Invalid CSV";
       csvStatusBadge.className = "badge badge-warning";
       accountCountBanner.style.display = "flex";
-      accountCountText.textContent = "No valid Reg.No / App.No rows found in file.";
+      accountCountText.textContent = "No valid username/password rows found in file.";
       testBtn.disabled = true;
       return;
     }
@@ -1054,17 +1054,17 @@ function parseCSV(text) {
   // Normalize header line
   const headers = rows[0].map(h => h.replace(/^\uFEFF/, "").trim().toLowerCase().replace(/\s+/g, " "));
 
-  const appIndex = findHeaderIndex(headers, ["app.no", "app no", "appno", "application no", "application number", "pass", "password"]);
-  const regIndex = findHeaderIndex(headers, ["reg.no", "reg no", "regno", "registered no", "registration no", "user", "username"]);
+  const appIndex = findHeaderIndex(headers, ["user", "username", "reg.no", "reg no", "regno", "registered no", "registration no"]);
+  const passIndex = findHeaderIndex(headers, ["pass", "password", "app.no", "app no", "appno", "application no", "application number"]);
 
-  if (appIndex < 0 || regIndex < 0) {
-    throw new Error("Could not detect Reg.No and App.No header columns.");
+  if (appIndex < 0 || passIndex < 0) {
+    throw new Error("Could not detect Username and Password header columns.");
   }
 
   return rows.slice(1)
     .map(r => ({
-      username: (r[regIndex] || "").trim(),
-      password: (r[appIndex] || "").trim()
+      username: (r[appIndex] || "").trim(),
+      password: (r[passIndex] || "").trim()
     }))
     .filter(x => x.username && x.password);
 }
