@@ -1,0 +1,25 @@
+# CSV and User Datasets (STRICT PRIVACY)
+*.csv
+*.tsv
+*.xlsx
+app_reg_numbers.csv
+test_accounts.csv
+
+# Environment & Secrets
+.env
+.env.*
+*.pem
+*.key
+*.cert
+secrets.json
+
+# Dependencies & Build Outputs
+node_modules/
+dist/
+build/
+.cache/
+
+# System Files
+.DS_Store
+Thumbs.db
+desktop.ini

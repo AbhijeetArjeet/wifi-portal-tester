@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  
+  <rect width="512" height="512" rx="110" fill="url(#bgGrad)"/>
+  
+  <g filter="url(#shadow)" transform="translate(256, 230)">
+    <!-- Wi-Fi Waves -->
+    <path d="M -180,-80 A 220,220 0 0,1 180,-80" fill="none" stroke="url(#iconGrad)" stroke-width="32" stroke-linecap="round"/>
+    <path d="M -120,-20 A 150,150 0 0,1 120,-20" fill="none" stroke="url(#iconGrad)" stroke-width="28" stroke-linecap="round"/>
+    <path d="M -60,40 A 80,80 0 0,1 60,40" fill="none" stroke="url(#iconGrad)" stroke-width="24" stroke-linecap="round"/>
+    <!-- Lock Body -->
+    <rect x="-35" y="80" width="70" height="60" rx="14" fill="#3b82f6"/>
+    <path d="M -20,80 V 60 A 20,20 0 0,1 20,60 V 80" fill="none" stroke="#3b82f6" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="0" cy="106" r="6" fill="#ffffff"/>
+  </g>
+</svg>
