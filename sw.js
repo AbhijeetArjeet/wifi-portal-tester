@@ -1,4 +1,4 @@
-const CACHE_NAME = "wifi-portal-tester-v7";
+const CACHE_NAME = "wifi-portal-tester-v8";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",

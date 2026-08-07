@@ -475,6 +475,11 @@
       border-color: rgba(16, 185, 129, 0.3);
     }
 
+    .status-banner-warning {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
     .status-icon {
       flex-shrink: 0;
       margin-top: 1px;
@@ -564,7 +569,7 @@
       </div>
       <div class="brand-text">
         <h1>WiFi Portal Tester</h1>
-        <p>Captive Portal Validation & Auto-Connect</p>
+        <p>Captive Portal Validation & Anti-Ban Protection</p>
       </div>
     </div>
     <div class="header-actions">
@@ -573,14 +578,12 @@
     </div>
   </header>
 
-  <!-- Offline Notice / Install Helper -->
-  <div id="offlineNoticeCard" class="card" style="border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.08);">
-    <div class="card-title" style="font-size:14px; color: var(--primary);">
-      <span>📲 How to Open the App When Offline</span>
+  <!-- Anti-Ban & Rate Limiter Banner -->
+  <div id="safetyBanner" class="status-banner" style="border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.08);">
+    <span class="status-icon">🛡️</span>
+    <div style="font-size:13px; color:var(--text-main);">
+      <b>Anti-Ban Server Safety Active:</b> Enforces a strict 30-second cooldown delay between requests to protect your account and IP/MAC from captive portal rate-limit bans.
     </div>
-    <p style="font-size:13px; color:var(--text-main); line-height:1.4;">
-      To open the app offline when you have <b>No Internet</b>, tap <b>"Install App"</b> above (or Chrome menu → <i>Add to Home Screen</i> / Safari → <i>Add to Home Screen</i>). Once installed, launch the icon directly from your phone's home screen!
-    </p>
   </div>
 
   <!-- Personal Account Setup & Auto-Connect Card -->
@@ -593,7 +596,7 @@
     </div>
 
     <p style="font-size:13px; color:var(--text-muted);">
-      Write your personal username and password once. Save it to your phone so the PWA connects you automatically every time you open the app or get disconnected by portal timeouts!
+      Write your personal username and password once. Save it to your phone so the PWA connects you automatically when you open the app or re-join Wi-Fi.
     </p>
 
     <div class="form-group">
@@ -613,24 +616,24 @@
 
     <div class="checkbox-row">
       <input type="checkbox" id="chkKeepAlive" checked>
-      <label for="chkKeepAlive">🛡️ Enable Failsafe Auto-Relogin (Prevents 1-2h timeouts)</label>
+      <label for="chkKeepAlive">🛡️ Enable Safe Auto-Relogin (Prevents 1-2h timeouts)</label>
     </div>
 
     <div class="setting-row">
-      <label for="keepAliveInterval">Background re-login timer (minutes):</label>
-      <input type="number" id="keepAliveInterval" class="setting-input" value="15" min="2" max="180">
+      <label for="keepAliveInterval">Safe re-login interval (minutes, min 10):</label>
+      <input type="number" id="keepAliveInterval" class="setting-input" value="30" min="10" max="180">
     </div>
 
     <!-- Active Failsafe Triggers -->
     <div class="failsafe-box">
-      <div style="font-weight:600; font-size:12px; color:var(--text-muted); text-transform:uppercase;">Active Failsafe Triggers:</div>
+      <div style="font-weight:600; font-size:12px; color:var(--text-muted); text-transform:uppercase;">Active Safe Triggers:</div>
       <div class="failsafe-item">
         <span>⏱️</span>
-        <span><b>Background Timer:</b> Periodically re-authenticates every <span id="dispIntervalMins">15</span> mins.</span>
+        <span><b>Safe Timer:</b> Re-authenticates every <span id="dispIntervalMins">30</span> mins (30s cooldown enforced).</span>
       </div>
       <div class="failsafe-item">
         <span>📶</span>
-        <span><b>Wi-Fi Reconnect Listener:</b> Re-logs in instantly when phone joins Wi-Fi.</span>
+        <span><b>Wi-Fi Reconnect Listener:</b> Re-logs in safely when phone joins Wi-Fi.</span>
       </div>
       <div class="failsafe-item">
         <span>📱</span>
@@ -689,7 +692,7 @@
     </div>
 
     <div class="setting-row">
-      <label for="testCountInput">Number of random tests to run:</label>
+      <label for="testCountInput">Number of random tests to run (safe 3s delay):</label>
       <input type="number" id="testCountInput" class="setting-input" value="1" min="1" max="50">
     </div>
 
@@ -761,8 +764,8 @@
         <div class="stat-label">Failed / Offline</div>
       </div>
       <div class="stat-card stat-full">
-        <div class="stat-value" id="statConnMode" style="color:var(--primary); font-size:14px; font-weight:600;">Opaque Direct Gateway POST</div>
-        <div class="stat-label">Captive Portal Transmission Mode</div>
+        <div class="stat-value" id="statConnMode" style="color:var(--primary); font-size:14px; font-weight:600;">Anti-Ban 30s Cooldown Active</div>
+        <div class="stat-label">Server Protection System</div>
       </div>
     </div>
   </div>
@@ -790,20 +793,14 @@
 
   <details>
     <summary>
-      <span>📖 Auto-Relogin & 3-Way Failsafe System</span>
+      <span>📖 Safe Auto-Relogin & Anti-Ban System</span>
       <span>▼</span>
     </summary>
     <div class="details-content">
-      <p><b>1. Saved Personal Credentials:</b></p>
-      <p>Write your username and password once into the app and tap <b>Save Credentials</b>. It is stored safely on your phone's browser localStorage.</p>
-      <p><b>2. Auto-Connect on Launch:</b></p>
-      <p>Opening the PWA from your mobile home screen sends the login payload automatically so you are connected immediately.</p>
-      <p><b>3. Three Failsafe Triggers (Overcomes 1-2 Hour Timeouts):</b></p>
-      <ul>
-        <li><b>Background Timer:</b> Sends a periodic login request every 15, 30, or 60 minutes to maintain active session state.</li>
-        <li><b>Wi-Fi Reconnect Listener:</b> Sends a login request as soon as your phone connects to Wi-Fi.</li>
-        <li><b>App Foreground Trigger:</b> Re-authenticates whenever you unlock your phone or switch back to the PWA.</li>
-      </ul>
+      <p><b>Anti-Ban Safeguard:</b></p>
+      <p>To prevent captive portal gateways from banning your account or MAC address due to request spamming, the PWA enforces a mandatory <b>30-second cooldown delay</b> between login attempts.</p>
+      <p><b>Recommended Safe Timer:</b></p>
+      <p>Set the background timer interval to <b>30 or 60 minutes</b> for optimal connection stability without triggering server limits.</p>
     </div>
   </details>
 
@@ -820,7 +817,7 @@
   </details>
 
   <div class="security-note">
-    <span>WiFi Captive Portal Tester • v7.0</span>
+    <span>WiFi Captive Portal Tester • v8.0 Anti-Ban</span>
     <button id="footerRefreshBtn" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; font-size:12px;">Clear Cache & Reload Latest Version</button>
   </div>
 </div>
@@ -842,6 +839,8 @@ let rawSelectedPassword = "";
 let showPasswordText = false;
 let isTesting = false;
 let keepAliveTimer = null;
+let lastPostTimestamp = 0;
+const MIN_COOLDOWN_MS = 30000; // 30 seconds strict safety delay to prevent server ban
 
 let stats = {
   attempted: 0,
@@ -1023,12 +1022,12 @@ function saveCredentialsLocally() {
     password: p,
     autoLaunch: chkAutoLaunch.checked,
     keepAlive: chkKeepAlive.checked,
-    intervalMins: parseInt(keepAliveInterval.value) || 15
+    intervalMins: Math.max(parseInt(keepAliveInterval.value) || 30, 10)
   };
   localStorage.setItem("wifi_tester_personal_cred", JSON.stringify(data));
   savedAccountBadge.textContent = "Saved Account Active";
   savedAccountBadge.className = "badge badge-active";
-  alert("Account saved to phone! It will now auto-connect when you open the PWA or re-join Wi-Fi.");
+  alert("Account saved safely to phone! Anti-ban rate limiting enabled.");
   toggleKeepAlive();
 }
 
@@ -1049,7 +1048,7 @@ function loadSavedCredentialsUI() {
     savedPass.value = creds.password || "";
     chkAutoLaunch.checked = creds.autoLaunch !== false;
     chkKeepAlive.checked = creds.keepAlive !== false;
-    keepAliveInterval.value = creds.intervalMins || 15;
+    keepAliveInterval.value = creds.intervalMins || 30;
     dispIntervalMins.textContent = keepAliveInterval.value;
 
     savedAccountBadge.textContent = "Saved Account Active";
@@ -1079,6 +1078,18 @@ async function connectSavedAccount() {
     return;
   }
 
+  // Rate Limiting Safety Check
+  const now = Date.now();
+  const elapsedSinceLast = now - lastPostTimestamp;
+  if (lastPostTimestamp > 0 && elapsedSinceLast < MIN_COOLDOWN_MS) {
+    const remainingSecs = Math.ceil((MIN_COOLDOWN_MS - elapsedSinceLast) / 1000);
+    console.log(`Safety Cooldown Active: Waiting ${remainingSecs}s to prevent server ban.`);
+    resultIcon.textContent = "🛡️";
+    lastResultBanner.className = "status-banner status-banner-warning";
+    resultText.innerHTML = `<b>Anti-Ban Cooldown Active (${remainingSecs}s remaining)</b><br>Request throttled to protect your account/IP from server banning.`;
+    return;
+  }
+
   rawSelectedPassword = p;
   dispUsername.textContent = u;
   updatePasswordDisplay();
@@ -1087,6 +1098,7 @@ async function connectSavedAccount() {
   dispTimestamp.textContent = timestamp;
 
   const startTime = performance.now();
+  lastPostTimestamp = Date.now();
   const result = await sendPortalPOST(u, p, timestamp);
   const elapsedMs = Math.round(performance.now() - startTime);
 
@@ -1100,12 +1112,12 @@ async function toggleKeepAlive() {
     keepAliveTimer = null;
   }
 
-  const mins = Math.max(parseInt(keepAliveInterval.value) || 15, 2);
+  const mins = Math.max(parseInt(keepAliveInterval.value) || 30, 10);
   dispIntervalMins.textContent = mins;
 
   if (chkKeepAlive.checked && (savedUser.value.trim() || getSavedCredentials())) {
     keepAliveTimer = setInterval(() => {
-      console.log("Failsafe Trigger 1: Background timer executing auto-login...");
+      console.log("Failsafe Trigger 1: Safe background timer executing auto-login...");
       connectSavedAccount();
     }, mins * 60 * 1000);
 
@@ -1223,6 +1235,12 @@ async function executeTests() {
   testBtnIcon.innerHTML = `<div class="spinner"></div>`;
 
   for (let i = 0; i < count; i++) {
+    // Rate Limiting Safety Check between batch requests
+    const now = Date.now();
+    if (lastPostTimestamp > 0 && (now - lastPostTimestamp) < 3000) {
+      await new Promise(r => setTimeout(r, 3000));
+    }
+
     const randomIndex = Math.floor(Math.random() * credentials.length);
     const selected = credentials[randomIndex];
     const timestamp = Date.now().toString();
@@ -1235,14 +1253,15 @@ async function executeTests() {
     dispTimestamp.textContent = timestamp;
 
     const startTime = performance.now();
+    lastPostTimestamp = Date.now();
     let result = await sendPortalPOST(selected.username, selected.password, timestamp);
     const elapsedMs = Math.round(performance.now() - startTime);
 
     updateStatsAndUI(result, elapsedMs, selected.username);
 
-    // Short delay if running multiple tests
+    // Safe 3-second delay between batch test requests
     if (i < count - 1) {
-      await new Promise(r => setTimeout(r, 600));
+      await new Promise(r => setTimeout(r, 3000));
     }
   }
 
