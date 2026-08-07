@@ -185,6 +185,45 @@
     }
 
     /* Form Controls */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .text-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-input);
+      color: var(--text-main);
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
     .file-input-wrapper {
       position: relative;
       display: flex;
@@ -220,10 +259,10 @@
 
     .btn {
       width: 100%;
-      min-height: 50px;
+      min-height: 48px;
       border: none;
       border-radius: 12px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
@@ -245,14 +284,14 @@
       transform: translateY(-1px);
     }
 
-    .btn-primary:active:not(:disabled) {
-      transform: translateY(0);
+    .btn-success {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
     }
 
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      box-shadow: none;
+    .btn-success:hover:not(:disabled) {
+      background: #059669;
     }
 
     .btn-outline {
@@ -263,6 +302,27 @@
 
     .btn-outline:hover:not(:disabled) {
       background: var(--bg-input);
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: var(--danger);
+    }
+
+    .btn-danger-outline:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
     }
 
     /* Test Settings */
@@ -459,17 +519,71 @@
       </div>
       <div class="brand-text">
         <h1>WiFi Portal Tester</h1>
-        <p>Captive Portal Validation Utility</p>
+        <p>Captive Portal Validation & Auto-Connect</p>
       </div>
     </div>
     <button id="pwaInstallBtn" class="install-btn">Install App</button>
   </header>
 
+  <!-- Personal Quick-Connect & Keep-Alive Card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>⭐ Personal Quick-Connect & Failsafe</span>
+      </div>
+      <span id="keepAliveBadge" class="badge badge-inactive">Offline Monitor</span>
+    </div>
+
+    <p style="font-size:13px; color:var(--text-muted);">
+      Save your personal Reg.No & App.No locally so the PWA automatically connects you every time you open the app or get disconnected.
+    </p>
+
+    <div class="form-group">
+      <label for="savedUser">Username (Reg.No):</label>
+      <input type="text" id="savedUser" class="text-input" placeholder="e.g. 2500031388">
+    </div>
+
+    <div class="form-group">
+      <label for="savedPass">Password (App.No):</label>
+      <input type="password" id="savedPass" class="text-input" placeholder="e.g. APP1001">
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="chkAutoLaunch" checked>
+      <label for="chkAutoLaunch">Auto-login automatically when PWA opens</label>
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="chkKeepAlive" checked>
+      <label for="chkKeepAlive">Enable Failsafe Keep-Alive (Auto re-login on disconnect/timeout)</label>
+    </div>
+
+    <div class="setting-row">
+      <label for="keepAliveInterval">Keep-Alive re-login interval (minutes):</label>
+      <input type="number" id="keepAliveInterval" class="setting-input" value="15" min="2" max="180">
+    </div>
+
+    <div class="btn-row">
+      <button id="btnConnectSaved" class="btn btn-success">
+        ⚡ Connect Saved Account
+      </button>
+    </div>
+
+    <div class="btn-row">
+      <button id="btnSaveLocal" class="btn btn-outline" style="flex:1;">
+        💾 Save Credentials
+      </button>
+      <button id="btnClearSaved" class="btn btn-danger-outline" style="flex:1;">
+        🗑️ Clear Saved
+      </button>
+    </div>
+  </div>
+
   <!-- CSV Import Card -->
   <div class="card">
     <div class="card-header">
       <div class="card-title">
-        <span>📁 Dataset Import</span>
+        <span>📁 CSV Dataset Testing</span>
       </div>
       <span id="csvStatusBadge" class="badge badge-inactive">No CSV Loaded</span>
     </div>
@@ -494,7 +608,7 @@
   <div class="card">
     <div class="card-header">
       <div class="card-title">
-        <span>🎲 Test Controls</span>
+        <span>🎲 Random CSV Test</span>
       </div>
       <span id="testStateBadge" class="badge badge-inactive">Idle</span>
     </div>
@@ -506,7 +620,7 @@
 
     <button id="testBtn" class="btn btn-primary" disabled>
       <span id="testBtnIcon">🎲</span>
-      <span id="testBtnText">Test Random Credential</span>
+      <span id="testBtnText">Test Random CSV Credential</span>
     </button>
   </div>
 
@@ -541,7 +655,7 @@
 
     <div id="lastResultBanner" class="status-banner">
       <span class="status-icon" id="resultIcon">⏱️</span>
-      <div id="resultText">Load a CSV and click Test to evaluate credentials.</div>
+      <div id="resultText">Save credentials or load CSV to begin authentication.</div>
     </div>
   </div>
 
@@ -600,27 +714,16 @@
 
   <details>
     <summary>
-      <span>📖 Project Documentation & Specifications</span>
+      <span>📖 Auto-Relogin & Failsafe Features</span>
       <span>▼</span>
     </summary>
     <div class="details-content">
-      <p><b>Captive Portal Endpoint:</b></p>
-      <p><code>POST https://captiveportal.kluniversity.in:8090/login.xml</code></p>
-      <p><b>Payload Parameters:</b></p>
-      <ul>
-        <li><code>mode=191</code></li>
-        <li><code>username=&lt;Reg.No&gt;</code></li>
-        <li><code>password=&lt;App.No&gt;</code></li>
-        <li><code>a=&lt;current timestamp&gt;</code></li>
-        <li><code>producttype=0</code></li>
-      </ul>
-      <p><b>CSV Column Requirements:</b></p>
-      <ul>
-        <li>Recognizes <code>Reg.No</code> / <code>Reg No</code> / <code>RegNo</code> → Username</li>
-        <li>Recognizes <code>App.No</code> / <code>App No</code> / <code>AppNo</code> → Password</li>
-        <li>Ignores <code>S.No</code></li>
-      </ul>
-      <p><b>GitHub Repository:</b> <a href="https://github.com/AbhijeetArjeet/wifi-portal-tester" target="_blank" style="color:var(--primary)">AbhijeetArjeet/wifi-portal-tester</a></p>
+      <p><b>Saved Personal Credentials:</b></p>
+      <p>Save your personal <code>Reg.No</code> and <code>App.No</code> directly in your device's browser localStorage.</p>
+      <p><b>Auto-Connect on Launch:</b></p>
+      <p>When enabled, every time you open the PWA on your phone, it automatically sends the login payload so you connect immediately.</p>
+      <p><b>Failsafe Keep-Alive:</b></p>
+      <p>If the Wi-Fi portal logs you out after a couple of hours, the background keep-alive monitor automatically re-submits your login request periodically and whenever your phone re-connects to Wi-Fi.</p>
     </div>
   </details>
 
@@ -630,8 +733,8 @@
       <span>▼</span>
     </summary>
     <div class="details-content">
-      <p>• Your imported CSV remains strictly local in your browser's volatile memory.</p>
-      <p>• No credentials are stored in localStorage, IndexedDB, cookies, or any remote database.</p>
+      <p>• Saved personal credentials reside exclusively in your local device's localStorage.</p>
+      <p>• Imported CSV files remain strictly in volatile RAM and are never stored or uploaded.</p>
       <p>• Captive portal URL: <code>https://captiveportal.kluniversity.in:8090/login.xml</code></p>
     </div>
   </details>
@@ -657,6 +760,7 @@ let credentials = [];
 let rawSelectedPassword = "";
 let showPasswordText = false;
 let isTesting = false;
+let keepAliveTimer = null;
 
 let stats = {
   attempted: 0,
@@ -667,6 +771,16 @@ let stats = {
 };
 
 // DOM References
+const savedUser = document.getElementById("savedUser");
+const savedPass = document.getElementById("savedPass");
+const chkAutoLaunch = document.getElementById("chkAutoLaunch");
+const chkKeepAlive = document.getElementById("chkKeepAlive");
+const keepAliveInterval = document.getElementById("keepAliveInterval");
+const keepAliveBadge = document.getElementById("keepAliveBadge");
+const btnConnectSaved = document.getElementById("btnConnectSaved");
+const btnSaveLocal = document.getElementById("btnSaveLocal");
+const btnClearSaved = document.getElementById("btnClearSaved");
+
 const csvFileInput = document.getElementById("csvFileInput");
 const fileInputLabel = document.getElementById("fileInputLabel");
 const fileInputText = document.getElementById("fileInputText");
@@ -699,6 +813,13 @@ const resetStatsBtn = document.getElementById("resetStatsBtn");
 const pwaInstallBtn = document.getElementById("pwaInstallBtn");
 
 // Event Listeners
+btnSaveLocal.addEventListener("click", saveCredentialsLocally);
+btnClearSaved.addEventListener("click", clearSavedCredentials);
+btnConnectSaved.addEventListener("click", connectSavedAccount);
+
+chkKeepAlive.addEventListener("change", toggleKeepAlive);
+keepAliveInterval.addEventListener("change", toggleKeepAlive);
+
 csvFileInput.addEventListener("change", handleFileSelect);
 
 // Drag and Drop support
@@ -722,6 +843,21 @@ testBtn.addEventListener("click", executeTests);
 togglePassBtn.addEventListener("click", togglePasswordVisibility);
 resetStatsBtn.addEventListener("click", resetSessionStats);
 
+// Network reconnect & window focus triggers for failsafe
+window.addEventListener("online", () => {
+  if (chkKeepAlive.checked && getSavedCredentials()) {
+    console.log("Network online detected. Triggering failsafe re-login...");
+    connectSavedAccount();
+  }
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && chkKeepAlive.checked && getSavedCredentials()) {
+    console.log("App foregrounded. Triggering failsafe re-login...");
+    connectSavedAccount();
+  }
+});
+
 // PWA Install Prompt handling
 let deferredPrompt = null;
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -740,6 +876,115 @@ pwaInstallBtn.addEventListener("click", async () => {
     deferredPrompt = null;
   }
 });
+
+// INITIALIZATION ON LAUNCH
+window.addEventListener("load", () => {
+  loadSavedCredentialsUI();
+  toggleKeepAlive();
+
+  const creds = getSavedCredentials();
+  if (creds && chkAutoLaunch.checked) {
+    console.log("Auto-login on launch enabled. Executing login...");
+    setTimeout(() => {
+      connectSavedAccount();
+    }, 400);
+  }
+});
+
+// SAVED CREDENTIAL FUNCTIONS
+function saveCredentialsLocally() {
+  const u = savedUser.value.trim();
+  const p = savedPass.value.trim();
+  if (!u || !p) {
+    alert("Please enter both Username (Reg.No) and Password (App.No).");
+    return;
+  }
+  const data = {
+    username: u,
+    password: p,
+    autoLaunch: chkAutoLaunch.checked,
+    keepAlive: chkKeepAlive.checked,
+    intervalMins: parseInt(keepAliveInterval.value) || 15
+  };
+  localStorage.setItem("wifi_tester_personal_cred", JSON.stringify(data));
+  alert("Personal credentials saved locally!");
+  toggleKeepAlive();
+}
+
+function getSavedCredentials() {
+  try {
+    const raw = localStorage.getItem("wifi_tester_personal_cred");
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+function loadSavedCredentialsUI() {
+  const creds = getSavedCredentials();
+  if (creds) {
+    savedUser.value = creds.username || "";
+    savedPass.value = creds.password || "";
+    chkAutoLaunch.checked = creds.autoLaunch !== false;
+    chkKeepAlive.checked = creds.keepAlive !== false;
+    keepAliveInterval.value = creds.intervalMins || 15;
+  }
+}
+
+function clearSavedCredentials() {
+  localStorage.removeItem("wifi_tester_personal_cred");
+  savedUser.value = "";
+  savedPass.value = "";
+  if (keepAliveTimer) clearInterval(keepAliveTimer);
+  keepAliveBadge.textContent = "Offline Monitor";
+  keepAliveBadge.className = "badge badge-inactive";
+  alert("Saved credentials cleared.");
+}
+
+async function connectSavedAccount() {
+  const u = savedUser.value.trim();
+  const p = savedPass.value.trim();
+
+  if (!u || !p) {
+    alert("Please enter or save Username (Reg.No) and Password (App.No) first.");
+    return;
+  }
+
+  rawSelectedPassword = p;
+  dispUsername.textContent = u;
+  updatePasswordDisplay();
+  togglePassBtn.style.display = "inline-flex";
+  const timestamp = Date.now().toString();
+  dispTimestamp.textContent = timestamp;
+
+  const startTime = performance.now();
+  const result = await sendPortalPOST(u, p, timestamp);
+  const elapsedMs = Math.round(performance.now() - startTime);
+
+  updateStatsAndUI(result, elapsedMs, u);
+}
+
+function toggleKeepAlive() {
+  if (keepAliveTimer) {
+    clearInterval(keepAliveTimer);
+    keepAliveTimer = null;
+  }
+
+  if (chkKeepAlive.checked && (savedUser.value.trim() || getSavedCredentials())) {
+    const mins = Math.max(parseInt(keepAliveInterval.value) || 15, 2);
+    keepAliveBadge.textContent = `Keep-Alive Active (${mins}m)`;
+    keepAliveBadge.className = "badge badge-active";
+
+    keepAliveTimer = setInterval(() => {
+      console.log("Failsafe keep-alive trigger executing...");
+      connectSavedAccount();
+    }, mins * 60 * 1000);
+  } else {
+    keepAliveBadge.textContent = "Monitor Disabled";
+    keepAliveBadge.className = "badge badge-inactive";
+  }
+}
 
 // CSV Handling
 async function handleFileSelect() {
@@ -866,7 +1111,7 @@ async function executeTests() {
 
   isTesting = false;
   testBtn.disabled = false;
-  testBtnText.textContent = "Test Random Credential";
+  testBtnText.textContent = "Test Random CSV Credential";
   testBtnIcon.textContent = "🎲";
   testStateBadge.textContent = "Ready";
   testStateBadge.className = "badge badge-active";
@@ -942,7 +1187,7 @@ function updateStatsAndUI(result, elapsedMs, username) {
   } else if (result.status === "UNVERIFIABLE") {
     stats.unverifiedSubmitted++;
     resultIcon.textContent = "⚠️";
-    resultText.innerHTML = `<b>Submitted (${elapsedMs} ms)</b><br>Response cannot be verified by browser (CORS restricted).`;
+    resultText.innerHTML = `<b>Submitted (${elapsedMs} ms)</b><br>User: ${escapeHtml(username)} (CORS Opaque mode).`;
   } else {
     stats.verifiedFailed++;
     resultIcon.textContent = "🚫";
@@ -981,7 +1226,7 @@ function resetSessionStats() {
   statUnverified.textContent = "0";
   statAvgTime.textContent = "-";
   resultIcon.textContent = "⏱️";
-  resultText.textContent = "Stats reset. Click Test to evaluate credentials.";
+  resultText.textContent = "Stats reset. Select or save credentials to evaluate.";
 }
 
 function escapeHtml(v) {
