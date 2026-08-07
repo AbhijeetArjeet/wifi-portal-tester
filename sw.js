@@ -1,4 +1,4 @@
-const CACHE_NAME = "wifi-portal-tester-v9";
+const CACHE_NAME = "wifi-portal-tester-v10";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -31,7 +31,7 @@ self.addEventListener("activate", (event) => {
 
 // Fetch Event - Instant Offline Loading + Background Network Refresh
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET" || event.request.url.includes("login.xml")) {
+  if (event.request.method !== "GET" || event.request.url.includes("login.xml") || event.request.url.includes("fgtauth")) {
     return;
   }
 

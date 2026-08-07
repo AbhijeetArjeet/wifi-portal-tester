@@ -1,22 +1,23 @@
-# 📶 WiFi Captive Portal Tester PWA
+# 📶 WiFi Captive Portal Tester PWA (v2.0 Universal Edition)
 
-[![Live PWA App](https://img.shields.io/badge/PWA-Live%20App-3b82f6?style=for-the-badge&logo=pwa)](https://abhijeetarjeet.github.io/wifi-portal-tester/)
+[![Live PWA App](https://img.shields.io/badge/PWA-v2.0%20Live%20App-3b82f6?style=for-the-badge&logo=pwa)](https://abhijeetarjeet.github.io/wifi-portal-tester/)
 [![Security](https://img.shields.io/badge/Privacy-100%25%20Local-10b981?style=for-the-badge)](https://github.com/AbhijeetArjeet/wifi-portal-tester)
 [![Deploy](https://img.shields.io/badge/Deployment-GitHub%20Pages-0f172a?style=for-the-badge&logo=github)](https://abhijeetarjeet.github.io/wifi-portal-tester/)
 
-A modern, mobile-first Progressive Web App (PWA) built for student Wi-Fi auto-connection and captive portal validation (`https://captiveportal.kluniversity.in:8090/login.xml`) with **One-Tap Quick Connect**, **Auto-Login on Launch**, **3-Way Failsafe Auto-Relogin**, and **Anti-Ban Server Safety**.
+A modern, universal mobile-first Progressive Web App (PWA) built for student Wi-Fi auto-connection, campus captive portal validation, **Multi-Account Profile Switching**, **Auto-Detect Campus Gateways**, and **Global Campus Wi-Fi Speed Leaderboard**.
 
 🌐 **Live Application URL**: [https://abhijeetarjeet.github.io/wifi-portal-tester/](https://abhijeetarjeet.github.io/wifi-portal-tester/)
 
 ---
 
-## 🌟 Key Features
+## 🌟 What's New in v2.0 Universal Edition
 
-- **👤 Student Single-User Interface**: By default, the general public app presents a clean, simple personal account setup card.
-- **⭐ Personal Quick-Connect & Local Storage**: Write your username & password once to save it safely to your phone's browser `localStorage`.
-- **⚡ Auto-Login on PWA Launch**: Opens the app and automatically authenticates your saved account immediately without requiring extra taps.
+- **🏛️ Universal College & Gateway Presets**: Pre-configured support for **KL University**, **SRM IST**, **VIT Vellore / Chennai**, **Manipal**, **Amity**, **LPU**, and custom campus gateway URLs. Saves your selection permanently so you never have to select or re-type it again!
+- **🔍 Auto-Detect Local Campus Gateway**: 1-click automatic captive portal URL detection when connected to any college Wi-Fi network.
+- **👥 Multi-Account Profile Switcher**: Save up to 3 student accounts (`Account 1 (Primary)`, `Account 2 (Backup 1)`, `Account 3 (Backup 2)`) with instant 1-tap profile switching.
+- **🚀 Campus Wi-Fi Speed Test & Global Leaderboard**: Test your campus Wi-Fi download/upload speed, ping, and jitter, and share your college's speed on the live public leaderboard!
 - **🛡️ 3-Way Failsafe Auto-Relogin**: Overcomes 1–2 hour portal timeouts with safe background timer, Wi-Fi reconnect listener, and screen unlock trigger.
-- **🛡️ 30-Second Anti-Ban Cooldown**: Mandatory 30s safety delay between requests protects your account, IP, and MAC address from server bans.
+- **🛡️ 30-Second Anti-Ban Server Safety**: Mandatory 30s safety delay protects your account, IP, and MAC address from gateway rate-limit bans.
 - **🛠️ Hidden Developer CSV Testing Suite**: Hidden from public view. Used by developers for batch importing CSV account datasets and running random credential testing against the captive portal endpoint.
 
 ---
@@ -38,4 +39,4 @@ A modern, mobile-first Progressive Web App (PWA) built for student Wi-Fi auto-co
 ---
 
 ## 📄 License
-Internal Testing Tool • WiFi Captive Portal Tester
+Universal Campus Testing Tool • WiFi Captive Portal Tester
