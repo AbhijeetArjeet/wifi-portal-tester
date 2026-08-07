@@ -1,4 +1,4 @@
-const CACHE_NAME = "wifi-portal-tester-v2";
+const CACHE_NAME = "wifi-portal-tester-v4";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -35,10 +35,28 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch Event - Cache-first with network fallback for local shell assets
+// Fetch Event - Network-First for HTML pages (immediate updates), Cache-First for static assets
 self.addEventListener("fetch", (event) => {
-  // Ignore non-GET or cross-origin portal POST requests
   if (event.request.method !== "GET" || event.request.url.includes("login.xml")) {
+    return;
+  }
+
+  const isHtmlPage = event.request.mode === "navigate" || 
+                     event.request.url.endsWith("index.html") || 
+                     event.request.url.endsWith("/");
+
+  if (isHtmlPage) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
+    );
     return;
   }
 
@@ -48,16 +66,11 @@ self.addEventListener("fetch", (event) => {
         return cachedResponse;
       }
       return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== "basic") {
-          return networkResponse;
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === "basic") {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
         }
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
         return networkResponse;
-      }).catch(() => {
-        return caches.match("./index.html");
       });
     })
   );

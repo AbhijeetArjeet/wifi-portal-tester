@@ -116,6 +116,12 @@
       color: var(--text-muted);
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
     .install-btn {
       display: none;
       background: rgba(59, 130, 246, 0.15);
@@ -132,6 +138,17 @@
     .install-btn:hover {
       background: var(--primary);
       color: #fff;
+    }
+
+    .refresh-app-btn {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
     }
 
     /* Cards */
@@ -508,6 +525,10 @@
       color: var(--text-muted);
       text-align: center;
       padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
     }
 
     /* Loading Spinner */
@@ -541,7 +562,10 @@
         <p>Captive Portal Validation & Auto-Connect</p>
       </div>
     </div>
-    <button id="pwaInstallBtn" class="install-btn">Install App</button>
+    <div class="header-actions">
+      <button id="pwaInstallBtn" class="install-btn">Install App</button>
+      <button id="headerRefreshBtn" class="refresh-app-btn" title="Force refresh PWA cache">🔄 Update</button>
+    </div>
   </header>
 
   <!-- Personal Account Setup & Auto-Connect Card -->
@@ -780,7 +804,8 @@
   </details>
 
   <div class="security-note">
-    WiFi Captive Portal Tester • Modern Mobile-First PWA
+    <span>WiFi Captive Portal Tester • v4.0</span>
+    <button id="footerRefreshBtn" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; font-size:12px;">Clear Cache & Reload Latest Version</button>
   </div>
 </div>
 
@@ -852,6 +877,8 @@ const statUnverified = document.getElementById("statUnverified");
 const resetStatsBtn = document.getElementById("resetStatsBtn");
 
 const pwaInstallBtn = document.getElementById("pwaInstallBtn");
+const headerRefreshBtn = document.getElementById("headerRefreshBtn");
+const footerRefreshBtn = document.getElementById("footerRefreshBtn");
 
 // Event Listeners
 btnSaveLocal.addEventListener("click", saveCredentialsLocally);
@@ -886,6 +913,25 @@ fileInputLabel.addEventListener("drop", (e) => {
 testBtn.addEventListener("click", executeTests);
 togglePassBtn.addEventListener("click", togglePasswordVisibility);
 resetStatsBtn.addEventListener("click", resetSessionStats);
+
+headerRefreshBtn.addEventListener("click", forceAppUpdate);
+footerRefreshBtn.addEventListener("click", forceAppUpdate);
+
+async function forceAppUpdate() {
+  if ("serviceWorker" in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (let r of regs) {
+      await r.unregister();
+    }
+    if (window.caches) {
+      const keys = await caches.keys();
+      for (let k of keys) {
+        await caches.delete(k);
+      }
+    }
+  }
+  window.location.reload(true);
+}
 
 // 3-WAY FAILSAFE LISTENERS
 
@@ -1286,10 +1332,16 @@ function escapeHtml(v) {
   return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-// Service Worker Registration
+// Service Worker Registration with Auto-Update
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(console.error);
+    navigator.serviceWorker.register("./sw.js").then((reg) => {
+      reg.update();
+    }).catch(console.error);
+  });
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
   });
 }
 </script>
