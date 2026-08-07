@@ -407,12 +407,20 @@
       gap: 8px;
     }
 
-    .details-content ol {
+    .details-content ol, .details-content ul {
       padding-left: 18px;
     }
 
     .details-content li {
       margin-bottom: 4px;
+    }
+
+    code {
+      font-family: monospace;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 12px;
     }
 
     /* Security Note */
@@ -587,6 +595,32 @@
         <li>Tap the <b>Share button</b> (box with arrow pointing up) at bottom bar.</li>
         <li>Scroll down and tap <b>"Add to Home Screen"</b>.</li>
       </ol>
+    </div>
+  </details>
+
+  <details>
+    <summary>
+      <span>📖 Project Documentation & Specifications</span>
+      <span>▼</span>
+    </summary>
+    <div class="details-content">
+      <p><b>Captive Portal Endpoint:</b></p>
+      <p><code>POST https://captiveportal.kluniversity.in:8090/login.xml</code></p>
+      <p><b>Payload Parameters:</b></p>
+      <ul>
+        <li><code>mode=191</code></li>
+        <li><code>username=&lt;Reg.No&gt;</code></li>
+        <li><code>password=&lt;App.No&gt;</code></li>
+        <li><code>a=&lt;current timestamp&gt;</code></li>
+        <li><code>producttype=0</code></li>
+      </ul>
+      <p><b>CSV Column Requirements:</b></p>
+      <ul>
+        <li>Recognizes <code>Reg.No</code> / <code>Reg No</code> / <code>RegNo</code> → Username</li>
+        <li>Recognizes <code>App.No</code> / <code>App No</code> / <code>AppNo</code> → Password</li>
+        <li>Ignores <code>S.No</code></li>
+      </ul>
+      <p><b>GitHub Repository:</b> <a href="https://github.com/AbhijeetArjeet/wifi-portal-tester" target="_blank" style="color:var(--primary)">AbhijeetArjeet/wifi-portal-tester</a></p>
     </div>
   </details>
 
