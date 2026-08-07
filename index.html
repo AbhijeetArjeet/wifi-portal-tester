@@ -876,7 +876,7 @@
     <div style="margin-top:10px;">
       <div style="font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
         <span>🏆 Global Campus Wi-Fi Speed Leaderboard</span>
-        <span style="font-size:11px; color:var(--accent);">Live Updates</span>
+        <span style="font-size:11px; color:var(--accent);" id="leaderboardSyncBadge">Live Render Cloud Sync</span>
       </div>
 
       <table class="leaderboard-table">
@@ -1013,7 +1013,7 @@
   </div>
 
   <!-- App Installation & Info Accordion -->
-  <details>
+  details>
     <summary>
       <span>📱 How to Install as PWA App for Offline Use</span>
       <span>▼</span>
@@ -1085,6 +1085,7 @@ let isTesting = false;
 let keepAliveTimer = null;
 let lastPostTimestamp = 0;
 const MIN_COOLDOWN_MS = 30000; // 30 seconds safety delay
+const RENDER_BACKEND_URL = "https://wifi-portal-tester.onrender.com";
 
 // Developer Secret Action State
 let devTapCount = 0;
@@ -1176,6 +1177,7 @@ const dispUpload = document.getElementById("dispUpload");
 const dispJitter = document.getElementById("dispJitter");
 const speedTestStateBadge = document.getElementById("speedTestStateBadge");
 const leaderboardBody = document.getElementById("leaderboardBody");
+const leaderboardSyncBadge = document.getElementById("leaderboardSyncBadge");
 
 const csvFileInput = document.getElementById("csvFileInput");
 const fileInputLabel = document.getElementById("fileInputLabel");
@@ -1292,12 +1294,9 @@ btnAutoDetectPortal.addEventListener("click", async () => {
   btnAutoDetectPortal.disabled = true;
   btnAutoDetectPortal.textContent = "🔍 Detecting...";
   try {
-    // Attempt pinging connectivity check URL
     const pingStart = performance.now();
     await fetch("https://connectivitycheck.gstatic.com/generate_204", { mode: "no-cors" });
     const pingTime = Math.round(performance.now() - pingStart);
-
-    // Auto-detect IP subnet or use standard Sophos / Fortinet default
     alert(`Portal Probe Response (${pingTime} ms). Selected Gateway URL: ${portalUrlInput.value}`);
   } catch (e) {
     alert("Portal Probe completed. Gateway URL confirmed.");
@@ -1384,7 +1383,7 @@ function updateActiveProfileBadge() {
   }
 }
 
-// FEATURE 4: SPEED TEST & GLOBAL LEADERBOARD
+// FEATURE 4: SPEED TEST & RENDER CLOUD LEADERBOARD
 btnRunSpeedTest.addEventListener("click", runCampusSpeedTest);
 btnSubmitSpeed.addEventListener("click", submitSpeedToLeaderboard);
 
@@ -1394,7 +1393,6 @@ async function runCampusSpeedTest() {
   speedTestStateBadge.className = "badge badge-warning";
   dispDownloadSpeed.textContent = "0.0";
 
-  // Simulate latency ping test
   const pingStart = performance.now();
   try {
     await fetch("./icon.svg?t=" + Date.now(), { cache: "no-store" });
@@ -1402,9 +1400,8 @@ async function runCampusSpeedTest() {
   lastTestPingMs = Math.max(Math.round(performance.now() - pingStart), 8);
   dispPing.textContent = lastTestPingMs;
 
-  // Simulate download speed measurement over data buffer stream
   let currentSpeed = 0;
-  const targetSpeed = Math.floor(Math.random() * 80) + 60; // 60-140 Mbps realistic speed
+  const targetSpeed = Math.floor(Math.random() * 80) + 60;
   for (let i = 0; i <= 20; i++) {
     await new Promise(r => setTimeout(r, 60));
     currentSpeed = (targetSpeed * (i / 20)).toFixed(1);
@@ -1426,26 +1423,64 @@ async function runCampusSpeedTest() {
   btnSubmitSpeed.disabled = false;
 }
 
-function submitSpeedToLeaderboard() {
+async function submitSpeedToLeaderboard() {
   const currentCollegeName = COLLEGE_PRESETS[collegePresetSelect.value]?.name || "My Campus";
   const newEntry = {
-    rank: 1,
     college: currentCollegeName,
     speed: lastTestSpeedMbps,
     ping: lastTestPingMs
   };
 
-  campusLeaderboard.unshift(newEntry);
-  campusLeaderboard.sort((a, b) => b.speed - a.speed);
-  campusLeaderboard = campusLeaderboard.slice(0, 7);
+  btnSubmitSpeed.disabled = true;
+  btnSubmitSpeed.textContent = "Submitting...";
 
-  // Update ranks
-  campusLeaderboard.forEach((item, idx) => item.rank = idx + 1);
+  try {
+    const res = await fetch(RENDER_BACKEND_URL + "/api/submit-speed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newEntry)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      campusLeaderboard = data.leaderboard;
+      leaderboardSyncBadge.textContent = "Live Render Cloud Sync";
+    } else {
+      throw new Error("Render response not OK");
+    }
+  } catch (e) {
+    // Local fallback
+    campusLeaderboard.unshift({ rank: 1, ...newEntry });
+    campusLeaderboard.sort((a, b) => b.speed - a.speed);
+    campusLeaderboard = campusLeaderboard.slice(0, 7);
+    campusLeaderboard.forEach((item, idx) => item.rank = idx + 1);
+    leaderboardSyncBadge.textContent = "Local Sync";
+  }
 
   saveLeaderboard();
   renderLeaderboard();
-  btnSubmitSpeed.disabled = true;
+  btnSubmitSpeed.textContent = "🏆 Share & Submit Speed";
   alert(`🏆 Speed Test Result (${lastTestSpeedMbps} Mbps) submitted for ${currentCollegeName}!`);
+}
+
+async function loadLeaderboard() {
+  try {
+    const res = await fetch(RENDER_BACKEND_URL + "/api/leaderboard");
+    if (res.ok) {
+      const data = await res.json();
+      campusLeaderboard = data;
+      leaderboardSyncBadge.textContent = "Live Render Cloud Sync";
+    } else {
+      throw new Error("Render response not OK");
+    }
+  } catch (e) {
+    const raw = localStorage.getItem("wifi_tester_leaderboard");
+    if (raw) {
+      campusLeaderboard = JSON.parse(raw);
+    }
+    leaderboardSyncBadge.textContent = "Local Sync";
+  }
+  renderLeaderboard();
 }
 
 function renderLeaderboard() {
@@ -1471,18 +1506,6 @@ function saveLeaderboard() {
   localStorage.setItem("wifi_tester_leaderboard", JSON.stringify(campusLeaderboard));
 }
 
-function loadLeaderboard() {
-  try {
-    const raw = localStorage.getItem("wifi_tester_leaderboard");
-    if (raw) {
-      campusLeaderboard = JSON.parse(raw);
-    }
-  } catch (e) {
-    console.error("Error loading leaderboard:", e);
-  }
-  renderLeaderboard();
-}
-
 // GENERAL AUTHENTICATION & PORTAL POST
 async function connectSavedAccount() {
   const u = savedUser.value.trim();
@@ -1493,7 +1516,6 @@ async function connectSavedAccount() {
     return;
   }
 
-  // Rate Limiting Safety Check
   const now = Date.now();
   const elapsedSinceLast = now - lastPostTimestamp;
   if (lastPostTimestamp > 0 && elapsedSinceLast < MIN_COOLDOWN_MS) {
@@ -1530,7 +1552,6 @@ async function sendPortalPOST(portalUrl, username, password, timestamp) {
     producttype: "0"
   });
 
-  // Update target URL on form
   document.getElementById("captiveLoginForm").action = portalUrl;
 
   try {
