@@ -4,7 +4,7 @@
 [![Security](https://img.shields.io/badge/Privacy-100%25%20Local-10b981?style=for-the-badge)](https://github.com/AbhijeetArjeet/wifi-portal-tester)
 [![Deploy](https://img.shields.io/badge/Deployment-GitHub%20Pages-0f172a?style=for-the-badge&logo=github)](https://abhijeetarjeet.github.io/wifi-portal-tester/)
 
-A modern, mobile-first Progressive Web App (PWA) built for testing and validating Wi-Fi captive portal authentication systems safely with local CSV testing, **One-Tap Quick Connect**, **Auto-Login on Launch**, and **Failsafe Keep-Alive Auto-Relogin**.
+A modern, mobile-first Progressive Web App (PWA) built for student Wi-Fi auto-connection and captive portal validation (`https://captiveportal.kluniversity.in:8090/login.xml`) with **One-Tap Quick Connect**, **Auto-Login on Launch**, **3-Way Failsafe Auto-Relogin**, and **Hidden Developer CSV Testing Suite**.
 
 🌐 **Live Application URL**: [https://abhijeetarjeet.github.io/wifi-portal-tester/](https://abhijeetarjeet.github.io/wifi-portal-tester/)
 
@@ -12,15 +12,20 @@ A modern, mobile-first Progressive Web App (PWA) built for testing and validatin
 
 ## 🌟 Key Features
 
-- **⭐ Personal Quick-Connect & Local Storage**: Save your personal credentials locally in your device's browser `localStorage` for instant one-tap logins.
+- **👤 Student Single-User Interface**: By default, the general public app presents a clean, simple personal account setup card.
+- **⭐ Personal Quick-Connect & Local Storage**: Write your username & password once to save it safely to your phone's browser `localStorage`.
 - **⚡ Auto-Login on PWA Launch**: Opens the app and automatically authenticates your saved account immediately without requiring extra taps.
-- **🛡️ Failsafe Keep-Alive (Session Timeout Prevention)**: Captive portals often disconnect users after 1–2 hours. The active background monitor periodically re-transmits the login payload (e.g. every 15–30 mins) and automatically re-connects whenever your device joins Wi-Fi or returns to the foreground.
-- **📱 Mobile-First Responsive Design**: Optimized for Android phones, iPhones, iPads, and Windows/macOS laptops with native utility feel.
-- **⚡ Offline App Shell (PWA)**: Installable directly to home screens with service worker offline caching and standalone display mode.
-- **🔒 100% Client-Side Privacy**: Bulk CSV datasets remain strictly in volatile RAM. Personal credentials remain isolated in your local browser `localStorage`. Zero server uploads.
-- **Flexible Header Auto-Mapping**: Parser automatically maps username and password columns from loaded CSV files.
-- **🎲 Random & Controlled Testing**: Pick random credentials with masked password display (`**********`) and optional rate-limited batch testing.
-- **📊 Real-Time Session Dashboard**: Tracks attempted tests, verified successes/failures, unverified submissions, and average response times.
+- **🛡️ 3-Way Failsafe Auto-Relogin**: Overcomes 1–2 hour portal timeouts with safe background timer, Wi-Fi reconnect listener, and screen unlock trigger.
+- **🛡️ 30-Second Anti-Ban Cooldown**: Mandatory 30s safety delay between requests protects your account, IP, and MAC address from server bans.
+- **🛠️ Hidden Developer CSV Suite**: CSV dataset batch testing tools are hidden from the general public.
+
+---
+
+## 🔓 How to Unlock Developer CSV Mode
+
+To reveal the CSV Dataset Import and Random Batch Testing cards:
+- **Secret Action 1**: Tap the top header brand icon (**WiFi Portal Tester**) **5 times quickly**.
+- **Secret Action 2**: Expand **🛠️ Developer Options** in the app footer accordion and tap **`🔓 Toggle Developer CSV Mode`**.
 
 ---
 
@@ -37,48 +42,6 @@ A modern, mobile-first Progressive Web App (PWA) built for testing and validatin
 2. Tap the **Share button** (square with up-arrow) on the bottom navigation bar.
 3. Scroll down and tap **"Add to Home Screen"**.
 4. Tap **Add** in the top-right corner.
-
----
-
-## ⚡ How to Use Personal Quick-Connect & Failsafe
-
-1. Open the app on your phone.
-2. Enter your `Username` and `Password` under **Personal Quick-Connect & Failsafe**.
-3. Tap **`💾 Save Credentials`**.
-4. Check **`Auto-login automatically when PWA opens`** and **`Enable Failsafe Keep-Alive`**.
-5. Every time you open the PWA from your home screen or get disconnected by the Wi-Fi portal timeout, the app automatically re-authenticates your device!
-
----
-
-## 📂 CSV Dataset Format Example
-
-Select a local `.csv` file containing test accounts:
-
-```csv
-Username,Password
-user_alpha_101,pass_secret_991
-user_beta_102,pass_secret_992
-user_gamma_103,pass_secret_993
-```
-
-Once loaded, the UI will report:
-`Accounts loaded: XXXX`
-
----
-
-## 📡 Captive Portal Endpoint Payload
-
-The POST request is transmitted to:
-`POST https://captiveportal.kluniversity.in:8090/login.xml`
-
-### Form Fields Submitted:
-| Field Name | Value / Description |
-| :--- | :--- |
-| `mode` | `191` |
-| `username` | Selected `Username` |
-| `password` | Selected `Password` |
-| `a` | Current timestamp string (`Date.now()`) |
-| `producttype` | `0` |
 
 ---
 
