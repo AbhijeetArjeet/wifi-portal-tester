@@ -1,4 +1,4 @@
-const CACHE_NAME = "wifi-portal-tester-v5";
+const CACHE_NAME = "wifi-portal-tester-v6";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -9,57 +9,59 @@ const ASSETS_TO_CACHE = [
   "./apple-touch-icon.png"
 ];
 
-// Install Event
+// Install Event - Pre-cache all essential app shell files
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
   self.skipWaiting();
 });
 
-// Activate Event
+// Activate Event - Clean up old cache versions immediately
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
-        })
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      )
+    )
   );
   self.clients.claim();
 });
 
-// Fetch Event - Network-First for HTML pages (immediate updates), Cache-First for static assets
+// Fetch Event - Instant Offline Loading + Background Network Refresh
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET" || event.request.url.includes("login.xml")) {
     return;
   }
 
-  const isHtmlPage = event.request.mode === "navigate" || 
-                     event.request.url.endsWith("index.html") || 
-                     event.request.url.endsWith("/");
+  const isNavigation = event.request.mode === "navigate" || 
+                       (event.request.headers.get("accept") && event.request.headers.get("accept").includes("text/html"));
 
-  if (isHtmlPage) {
+  if (isNavigation) {
     event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
-          }
-          return networkResponse;
-        })
-        .catch(() => caches.match(event.request))
+      caches.match("./index.html").then((cachedResponse) => {
+        const fetchPromise = fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put("./index.html", responseToCache);
+                cache.put("./", responseToCache.clone());
+              });
+            }
+            return networkResponse;
+          })
+          .catch(() => null);
+
+        // If cached offline version exists, return it INSTANTLY. Otherwise fallback to network fetch.
+        return cachedResponse || fetchPromise || caches.match("./");
+      })
     );
     return;
   }
 
+  // Static Assets (icons, manifest, etc.)
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
