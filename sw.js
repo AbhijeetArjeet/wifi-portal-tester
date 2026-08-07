@@ -1,4 +1,4 @@
-const CACHE_NAME = "wifi-portal-tester-v6";
+const CACHE_NAME = "wifi-portal-tester-v7";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -54,7 +54,6 @@ self.addEventListener("fetch", (event) => {
           })
           .catch(() => null);
 
-        // If cached offline version exists, return it INSTANTLY. Otherwise fallback to network fetch.
         return cachedResponse || fetchPromise || caches.match("./");
       })
     );
@@ -77,3 +76,23 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
+// Background Sync & Periodic Background Sync Support
+self.addEventListener("sync", (event) => {
+  if (event.tag === "portal-auto-login") {
+    event.waitUntil(notifyClientsToLogin());
+  }
+});
+
+self.addEventListener("periodicsync", (event) => {
+  if (event.tag === "portal-keep-alive") {
+    event.waitUntil(notifyClientsToLogin());
+  }
+});
+
+async function notifyClientsToLogin() {
+  const allClients = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
+  for (const client of allClients) {
+    client.postMessage({ action: "AUTO_LOGIN" });
+  }
+}

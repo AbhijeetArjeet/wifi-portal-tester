@@ -613,7 +613,7 @@
 
     <div class="checkbox-row">
       <input type="checkbox" id="chkKeepAlive" checked>
-      <label for="chkKeepAlive">🛡️ Enable 3-Way Failsafe Auto-Relogin (Prevents 1-2h timeouts)</label>
+      <label for="chkKeepAlive">🛡️ Enable Failsafe Auto-Relogin (Prevents 1-2h timeouts)</label>
     </div>
 
     <div class="setting-row">
@@ -820,7 +820,7 @@
   </details>
 
   <div class="security-note">
-    <span>WiFi Captive Portal Tester • v6.0</span>
+    <span>WiFi Captive Portal Tester • v7.0</span>
     <button id="footerRefreshBtn" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; font-size:12px;">Clear Cache & Reload Latest Version</button>
   </div>
 </div>
@@ -948,6 +948,18 @@ async function forceAppUpdate() {
 }
 
 // 3-WAY FAILSAFE LISTENERS
+
+// Service Worker PostMessage Auto-Login Handler (Background Sync)
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    if (event.data && event.data.action === "AUTO_LOGIN") {
+      if (chkKeepAlive.checked && getSavedCredentials()) {
+        console.log("Background Sync event received from Service Worker. Auto-connecting...");
+        connectSavedAccount();
+      }
+    }
+  });
+}
 
 // Failsafe Trigger 2: Network Reconnect Listener (When phone joins Wi-Fi)
 window.addEventListener("online", () => {
@@ -1081,8 +1093,8 @@ async function connectSavedAccount() {
   updateStatsAndUI(result, elapsedMs, u);
 }
 
-// Failsafe Trigger 1: Background Timer
-function toggleKeepAlive() {
+// Failsafe Trigger 1: Background Timer + Periodic Background Sync
+async function toggleKeepAlive() {
   if (keepAliveTimer) {
     clearInterval(keepAliveTimer);
     keepAliveTimer = null;
@@ -1096,6 +1108,18 @@ function toggleKeepAlive() {
       console.log("Failsafe Trigger 1: Background timer executing auto-login...");
       connectSavedAccount();
     }, mins * 60 * 1000);
+
+    // Register Android Periodic Background Sync if supported
+    if ("serviceWorker" in navigator && "PeriodicSyncManager" in window) {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        await reg.periodicSync.register("portal-keep-alive", {
+          minInterval: mins * 60 * 1000
+        });
+      } catch (e) {
+        console.log("Periodic sync registration:", e.message);
+      }
+    }
   }
 }
 
