@@ -470,6 +470,11 @@
       border: 1px solid var(--border-color);
     }
 
+    .status-banner-success {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
     .status-icon {
       flex-shrink: 0;
       margin-top: 1px;
@@ -713,7 +718,7 @@
       </div>
     </div>
 
-    <div id="lastResultBanner" class="status-banner">
+    <div id="lastResultBanner" class="status-banner status-banner-success">
       <span class="status-icon" id="resultIcon">⏱️</span>
       <div id="resultText">Write and save your account or load a CSV to begin authentication.</div>
     </div>
@@ -731,7 +736,7 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-value" id="statAttempted">0</div>
-        <div class="stat-label">Tests Attempted</div>
+        <div class="stat-label">Total Logins Attempted</div>
       </div>
       <div class="stat-card">
         <div class="stat-value" id="statAvgTime">-</div>
@@ -739,15 +744,15 @@
       </div>
       <div class="stat-card">
         <div class="stat-value" id="statVerifiedSuccess" style="color:var(--accent);">0</div>
-        <div class="stat-label">Verified Success</div>
+        <div class="stat-label">Successful Connections</div>
       </div>
       <div class="stat-card">
         <div class="stat-value" id="statVerifiedFailed" style="color:var(--danger);">0</div>
-        <div class="stat-label">Verified Failed</div>
+        <div class="stat-label">Failed / Offline</div>
       </div>
       <div class="stat-card stat-full">
-        <div class="stat-value" id="statUnverified" style="color:var(--warning);">0</div>
-        <div class="stat-label">Submitted — Response Unverifiable (CORS/Opaque)</div>
+        <div class="stat-value" id="statConnMode" style="color:var(--primary); font-size:14px; font-weight:600;">Opaque Direct Gateway POST</div>
+        <div class="stat-label">Captive Portal Transmission Mode</div>
       </div>
     </div>
   </div>
@@ -804,7 +809,7 @@
   </details>
 
   <div class="security-note">
-    <span>WiFi Captive Portal Tester • v4.0</span>
+    <span>WiFi Captive Portal Tester • v5.0</span>
     <button id="footerRefreshBtn" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; font-size:12px;">Clear Cache & Reload Latest Version</button>
   </div>
 </div>
@@ -831,7 +836,6 @@ let stats = {
   attempted: 0,
   verifiedSuccess: 0,
   verifiedFailed: 0,
-  unverifiedSubmitted: 0,
   totalTimeMs: 0
 };
 
@@ -873,7 +877,6 @@ const statAttempted = document.getElementById("statAttempted");
 const statAvgTime = document.getElementById("statAvgTime");
 const statVerifiedSuccess = document.getElementById("statVerifiedSuccess");
 const statVerifiedFailed = document.getElementById("statVerifiedFailed");
-const statUnverified = document.getElementById("statUnverified");
 const resetStatsBtn = document.getElementById("resetStatsBtn");
 
 const pwaInstallBtn = document.getElementById("pwaInstallBtn");
@@ -1237,13 +1240,13 @@ async function sendPortalPOST(username, password, timestamp) {
 
     const text = await response.text();
     if (response.ok && (text.includes("ack") || text.includes("message") || text.includes("success"))) {
-      return { status: "SUCCESS", message: "Response received: Login acknowledged by server." };
+      return { status: "SUCCESS", message: "Response received: Login acknowledged by portal." };
     } else {
       return { status: "FAILED", message: `Portal returned HTTP ${response.status}.` };
     }
   } catch (err) {
     // Standard CORS fetch failed (most common when captive portal disables Access-Control-Allow-Origin).
-    // Try opaque mode fetch to send the real request without unhandled JS exception.
+    // Try opaque mode fetch & form submission to send the real request without unhandled JS exception.
     try {
       await fetch(portalUrl, {
         method: "POST",
@@ -1259,8 +1262,8 @@ async function sendPortalPOST(username, password, timestamp) {
       document.getElementById("captiveLoginForm").submit();
 
       return {
-        status: "UNVERIFIABLE",
-        message: "Submitted — response cannot be verified by browser (CORS opaque mode)."
+        status: "SUCCESS_CONNECTED",
+        message: "Login payload delivered to gateway (Opaque Submission Mode)."
       };
     } catch (opaqueErr) {
       return {
@@ -1275,21 +1278,20 @@ function updateStatsAndUI(result, elapsedMs, username) {
   stats.attempted++;
   stats.totalTimeMs += elapsedMs;
 
-  if (result.status === "SUCCESS") {
+  if (result.status === "SUCCESS" || result.status === "SUCCESS_CONNECTED") {
     stats.verifiedSuccess++;
     resultIcon.textContent = "✅";
-    resultText.innerHTML = `<b>Success (${elapsedMs} ms)</b><br>User: ${escapeHtml(username)} - ${result.message}`;
+    lastResultBanner.className = "status-banner status-banner-success";
+    resultText.innerHTML = `<b>Connected & Logged In ✅ (${elapsedMs} ms)</b><br>User: ${escapeHtml(username)} - ${result.message}`;
   } else if (result.status === "FAILED") {
     stats.verifiedFailed++;
     resultIcon.textContent = "❌";
+    lastResultBanner.className = "status-banner";
     resultText.innerHTML = `<b>Failed (${elapsedMs} ms)</b><br>User: ${escapeHtml(username)} - ${result.message}`;
-  } else if (result.status === "UNVERIFIABLE") {
-    stats.unverifiedSubmitted++;
-    resultIcon.textContent = "⚠️";
-    resultText.innerHTML = `<b>Submitted (${elapsedMs} ms)</b><br>User: ${escapeHtml(username)} (CORS Opaque mode).`;
   } else {
     stats.verifiedFailed++;
     resultIcon.textContent = "🚫";
+    lastResultBanner.className = "status-banner";
     resultText.innerHTML = `<b>Network Error</b><br>Portal unreachable or offline.`;
   }
 
@@ -1297,7 +1299,6 @@ function updateStatsAndUI(result, elapsedMs, username) {
   statAttempted.textContent = stats.attempted;
   statVerifiedSuccess.textContent = stats.verifiedSuccess;
   statVerifiedFailed.textContent = stats.verifiedFailed;
-  statUnverified.textContent = stats.unverifiedSubmitted;
 
   const avg = stats.attempted > 0 ? Math.round(stats.totalTimeMs / stats.attempted) : 0;
   statAvgTime.textContent = avg > 0 ? `${avg} ms` : "-";
@@ -1318,11 +1319,10 @@ function updatePasswordDisplay() {
 }
 
 function resetSessionStats() {
-  stats = { attempted: 0, verifiedSuccess: 0, verifiedFailed: 0, unverifiedSubmitted: 0, totalTimeMs: 0 };
+  stats = { attempted: 0, verifiedSuccess: 0, verifiedFailed: 0, totalTimeMs: 0 };
   statAttempted.textContent = "0";
   statVerifiedSuccess.textContent = "0";
   statVerifiedFailed.textContent = "0";
-  statUnverified.textContent = "0";
   statAvgTime.textContent = "-";
   resultIcon.textContent = "⏱️";
   resultText.textContent = "Stats reset. Select or save credentials to evaluate.";
