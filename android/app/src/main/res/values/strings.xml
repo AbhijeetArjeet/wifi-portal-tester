@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Genuine Connect</string>
+    <string name="title_activity_main">Genuine Connect</string>
+    <string name="package_name">com.wifiportaltester.app</string>
+    <string name="custom_url_scheme">com.wifiportaltester.app</string>
+    <string name="widget_description">Shows your last speed test result, ping, and DNS override status at a glance.</string>
+</resources>
