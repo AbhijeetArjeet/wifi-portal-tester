@@ -1,89 +1,74 @@
-# 📶 WiFi Captive Portal Tester PWA (v3.0 Campus Edition)
+# 📶 WiFi Portal Connector (v3.0 Campus Edition)
 
 [![Live PWA App](https://img.shields.io/badge/PWA-v3.0%20Live%20App-3b82f6?style=for-the-badge&logo=pwa)](https://abhijeetarjeet.github.io/wifi-portal-tester/)
 [![Security](https://img.shields.io/badge/Privacy-100%25%20Local-10b981?style=for-the-badge)](https://github.com/AbhijeetArjeet/wifi-portal-tester)
 [![Deployment](https://img.shields.io/badge/Vercel-Deployment-000000?style=for-the-badge&logo=vercel)](https://wifi-portal-tester.vercel.app)
 
-A modern, universal mobile-first Progressive Web App (PWA) built for student Wi-Fi auto-connection, campus captive portal validation, **Multi-Account Profile Switching**, **Auto-Detect Campus Gateways**, and a **Global Campus Wi-Fi Speed Leaderboard**.
+A modern, universal mobile-first app built for student Wi-Fi auto-connection, campus captive portal validation, **Multi-Account Profile Switching**, **Auto-Detect Campus Gateways**, and a **Global Campus Wi-Fi Speed Leaderboard**.
+
+Now updated to **v3.0** with a full **Android Native App** implementation using Capacitor!
 
 🌐 **Live Application URL**: [https://abhijeetarjeet.github.io/wifi-portal-tester/](https://abhijeetarjeet.github.io/wifi-portal-tester/)  
 ⚡ **API Backend & Leaderboard**: Hosted on Vercel [https://wifi-portal-tester.vercel.app](https://wifi-portal-tester.vercel.app)
 
 ---
 
-## 🛠️ The Tech Stack (What We Are Using)
+## 📱 Android Native App Features (New in v3.0)
 
-The project is designed to be lightweight, serverless, and extremely fast on poor connections:
+While the PWA is great, the **Native Android App** (included in the `android/` folder) brings powerful hardware-level features that browsers cannot access:
 
-1. **Frontend / UI**:
-   - **HTML5 & Vanilla ES6+ JavaScript**: Lightweight, zero dependencies, no heavy framework overhead, rendering in milliseconds.
-   - **CSS3 Modern Custom Styles**: Implements glassmorphism, responsive CSS grid layouts, smooth micro-animations, and styled HSL-tailored color palettes.
-   - **SVG Path Gauges**: Interactive gauges dynamically rendered in real-time.
+1. **Native Network Monitor (Reliable Auto-Login)**:
+   - Uses `ConnectivityManager.NetworkCallback` to listen for real hardware transitions.
+   - Triggers portal checks immediately when switching WiFi networks or roaming between APs, even if the browser doesn't detect an "offline/online" flip.
 
-2. **Offline-First & PWA Capabilities**:
-   - **Service Workers (`sw.js`)**: Background caching of assets for offline readiness, allowing immediate app launches even with zero internet signal.
-   - **Web App Manifest (`manifest.webmanifest`)**: Enforces standalone PWA app shell, allowing installation on Android/iOS home screens.
+2. **No-Root DNS Override (Split-Tunnel VPN)**:
+   - Built-in `VpnService` implementation to resolve DNS through Cloudflare (1.1.1.1) or Google (8.8.8.8).
+   - Solves the common "DNS-over-Campus-Wi-Fi" latency and blocking issues without needing root or a separate VPN app.
 
-3. **Backend & Serverless Database APIs**:
-   - **Vercel Serverless Edge Functions**: Lightweight serverless functions handle API endpoints (/api/submit-speed, /api/leaderboard).
-   - **Upstash Redis (Serverless KV store)**: Ultra-low latency database deployed in the `ap-south-1` region (Mumbai) to record global speed test submissions and sync the university leaderboard instantly.
+3. **Home Screen Status Widget**:
+   - A native Android widget to see your last speed test, ping, and DNS status at a glance without opening the app.
 
-4. **Multi-CDN Speed Testing**:
-   - **Cloudflare CDN / HTTP 3**: Leverages Cloudflare speed-measuring endpoints.
-   - **Parallel Web Worker Streams**: Opens 8 concurrent TCP socket fetch connections to bypass single-thread latency limits, delivering precise bandwidth calculations matching speedtest.net accuracy.
+4. **System Notifications**:
+   - Persistent notifications for background portal login attempts so you know when you've been re-authenticated.
 
 ---
 
-## 🌟 Key Features
+## 🛠️ The Tech Stack
 
-- **🏛️ Universal College Presets**: Pre-configured support for **KL University**, **SRM IST**, **VIT Vellore / Chennai**, **Manipal**, **Amity**, and others.
-- **🔍 Auto-Detect Campus Gateway**: 1-click automatic captive portal URL scanning.
-- **👥 Multi-Account Profile Switcher**: Save up to 3 student credentials with instant 1-tap swapping.
-- **🚀 Campus Wi-Fi Speed Test & Global Leaderboard**: Real-time parallel download speed testing with public global ranking submissions.
-- **🛡️ Smart Reconnect & Anti-Ban Cooldown**: Auto-detects captive portals while safely skipping login on mobile data, with a 30s throttling cooldown to prevent server/IP bans.
-- **❌ Factory Data Reset**: 1-tap browser cache and saved accounts wipe.
+1. **Frontend / UI**: Vanilla HTML5, Modern CSS3 (Glassmorphism), and ES6+ JavaScript.
+2. **Native Layer**: **Capacitor 6** with custom Kotlin/Java Android plugins.
+3. **Backend**: Vercel Serverless Edge Functions + Upstash Redis (Mumbai region).
+4. **Bandwidth Engine**: Parallel TCP socket fetch workers for speedtest.net-level accuracy.
 
 ---
 
-## 📲 PWA Installation Guide
-
-### 🤖 Android (Google Chrome / Edge / Brave)
-1. Visit the app link.
-2. Tap the **"Install"** button on the header banner, or open the browser menu `⋮`.
-3. Tap **"Add to Home Screen"** or **"Install app"**.
-
-### 🍎 iPhone / iPad (iOS Safari)
-1. Open the URL in **Safari**.
-2. Tap the **Share button** (square with up-arrow) on the bottom navigation bar.
-3. Scroll down and tap **"Add to Home Screen"**.
+## 🌸 Easter Eggs (Oregairu Edition)
+This version includes subtle thematic touches from the anime *My Teen Romantic Comedy SNAFU*:
+- **The Genuine Connection**: Successful internet checks are now verified as "Genuine".
+- **Service Club Monitor**: The auto-reconnect system is branded as the "Service Club's Network Monitor".
+- **Hidden Quotes**: Tap the version footer text 5 times to see random quotes from Hachiman and the gang.
 
 ---
 
-## 👔 LinkedIn Showcase Post Template
-*Feel free to copy, modify, and share this on your LinkedIn profile!* 🚀
-
+## 👔 LinkedIn Template (v3.0 Update)
 ```text
-🚀 Project Showcase: Building a Serverless PWA for College Captive Portal Testing & Wi-Fi Analytics!
+🚀 Major Update: WiFi Portal Connector v3.0 is now a Native Android App!
 
-Tired of manually logging into your campus Wi-Fi captive portal every time your phone locks? I built a solution to solve this and add some fun university-wide features to the mix!
+I've taken my "WiFi Portal Tester" PWA and evolved it into a full-featured Android application using Capacitor and custom Native Kotlin plugins.
 
-Introducing 📶 WiFi Portal Tester v3.0 — a Progressive Web App (PWA) with a serverless backend and a live campus speed test leaderboard.
+What's new in the Native version?
+📶 Native Network Callback: Solved the "SSID change" problem by using the Android ConnectivityManager to trigger auto-logins the second you switch WiFi networks.
+🌐 System-wide DNS Override: Implemented a split-tunnel VpnService (no root required) to force DNS through Cloudflare 1.1.1.1, bypassing restrictive campus DNS.
+📊 Home Screen Widget: Built a native widget to track real-time connection stats.
+🌸 Oregairu Easter Eggs: Added some thematic flair from my favorite anime!
 
-Here is the tech stack behind it:
-💻 Frontend: Vanilla HTML5, Modern CSS3 (Glassmorphism), and ES6+ JavaScript. No bulky frameworks, ensuring near-instant load times even on spotty college networks.
-📲 Progressive Web App (PWA): Equipped with Service Workers and Cache Storage API so the app launches and runs offline.
-⚡ Serverless Backend: Hosted on Vercel Serverless Functions (Node.js) for clean API scaling.
-🗄️ Database: Upstash Redis (Serverless KV store) located in Mumbai (lowest latency) for instant leaderboard sync.
-🚀 Bandwidth Engine: Uses parallel fetch streams (8 concurrent workers) hitting Cloudflare CDN endpoints to bypass single-thread latency limits for accurate speed results.
+Check out the source code and download the latest APK: https://github.com/AbhijeetArjeet/wifi-portal-tester
 
-Key Features Built:
-• Multi-Account Switcher (save up to 3 profiles for instant swapping)
-• 1-Click captive portal Auto-Detection
-• Failsafe Auto-Reconnect with Smart Network Check (skips login on mobile data automatically to save university server calls)
-• Anti-Ban Protection (a 30s rate-limiting cooldown)
-• Public Global Campus Wi-Fi Leaderboard (Vercel + Upstash Redis integration)
-
-Check out the live code here: https://github.com/AbhijeetArjeet/wifi-portal-tester
-
-#WebDevelopment #Javascript #PWA #Vercel #Serverless #Redis #Cloudflare #Productivity #PortfolioShowcase
+#AndroidDevelopment #Kotlin #Capacitor #PWA #Vercel #Serverless #Productivity #GenuineConnect
 ```
+
+---
+
+## 👨‍💻 Developer
+**Abhijeet Arjeet**  
+[GitHub](https://github.com/AbhijeetArjeet/wifi-portal-tester) | [LinkedIn](https://www.linkedin.com/in/abhijeet-arjeet-021946251/)

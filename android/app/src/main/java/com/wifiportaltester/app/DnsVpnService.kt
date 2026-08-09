@@ -127,7 +127,7 @@ class DnsVpnService : VpnService() {
 
         try {
             val builder = Builder()
-                .setSession("Genuine Connect DNS")
+                .setSession("WiFi Portal Connector DNS")
                 .addAddress(TUN_ADDRESS, 32)
                 .addDnsServer(TUN_ADDRESS)
                 // Only this single /32 address is routed into the tunnel.
