@@ -1,9 +1,4 @@
 // api/submit-speed.js — Vercel Serverless Function (POST /api/submit-speed)
-// Accepts speed test submissions globally; stores in Upstash Redis.
-//
-// SETUP: In Vercel dashboard → Storage → Create Redis → link to project.
-// Env vars auto-added: KV_REST_API_URL, KV_REST_API_TOKEN
-
 const SEED_DATA = [
   { rank: 1, college: 'KL University', speed: 142.5, ping: 12, country: 'IN' },
   { rank: 2, college: 'SRM IST', speed: 118.2, ping: 15, country: 'IN' },
@@ -15,8 +10,14 @@ const SEED_DATA = [
 const MAX_SIZE = 50;
 
 async function getFromRedis() {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_KV_REST_API_URL || 
+              process.env.KV_REST_API_URL || 
+              process.env.UPSTASH_REDIS_REST_URL;
+
+  const token = process.env.UPSTASH_REDIS_REST_KV_REST_API_TOKEN || 
+                process.env.KV_REST_API_TOKEN || 
+                process.env.UPSTASH_REDIS_REST_TOKEN;
+
   if (!url || !token) return null;
   const res = await fetch(`${url}/get/wifi_leaderboard`, { headers: { Authorization: `Bearer ${token}` } });
   const data = await res.json();
@@ -24,8 +25,14 @@ async function getFromRedis() {
 }
 
 async function saveToRedis(leaderboard) {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_KV_REST_API_URL || 
+              process.env.KV_REST_API_URL || 
+              process.env.UPSTASH_REDIS_REST_URL;
+
+  const token = process.env.UPSTASH_REDIS_REST_KV_REST_API_TOKEN || 
+                process.env.KV_REST_API_TOKEN || 
+                process.env.UPSTASH_REDIS_REST_TOKEN;
+
   if (!url || !token) return;
   await fetch(`${url}/set/wifi_leaderboard`, {
     method: 'POST',

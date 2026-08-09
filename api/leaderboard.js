@@ -1,10 +1,4 @@
 // api/leaderboard.js — Vercel Serverless Function (GET /api/leaderboard)
-// Uses Upstash Redis (new Vercel KV) for persistent global storage.
-// Fallback to seed data if Redis not configured.
-// 
-// SETUP: In Vercel dashboard → Storage → Create Redis → Copy env vars to project:
-//   KV_REST_API_URL + KV_REST_API_TOKEN (auto-added when linked in Vercel)
-
 const SEED_DATA = [
   { rank: 1, college: 'KL University', speed: 142.5, ping: 12, country: 'IN' },
   { rank: 2, college: 'SRM IST', speed: 118.2, ping: 15, country: 'IN' },
@@ -14,8 +8,15 @@ const SEED_DATA = [
 ];
 
 async function getFromRedis() {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Support default Upstash, Vercel KV, and the custom prefixed Vercel variables
+  const url = process.env.UPSTASH_REDIS_REST_KV_REST_API_URL || 
+              process.env.KV_REST_API_URL || 
+              process.env.UPSTASH_REDIS_REST_URL;
+
+  const token = process.env.UPSTASH_REDIS_REST_KV_REST_API_TOKEN || 
+                process.env.KV_REST_API_TOKEN || 
+                process.env.UPSTASH_REDIS_REST_TOKEN;
+
   if (!url || !token) throw new Error('Redis not configured');
 
   const res = await fetch(`${url}/get/wifi_leaderboard`, {
@@ -40,7 +41,6 @@ export default async function handler(req, res) {
     const leaderboard = await getFromRedis();
     return res.status(200).json(leaderboard || SEED_DATA);
   } catch (err) {
-    // Redis not configured or error — return seed data
     return res.status(200).json(SEED_DATA);
   }
 }
