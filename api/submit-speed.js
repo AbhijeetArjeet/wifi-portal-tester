@@ -3,36 +3,53 @@
 
 const MAX_SIZE = 50;
 
-async function getFromRedis() {
-  const url = process.env.UPSTASH_REDIS_REST_KV_REST_API_URL || 
-              process.env.KV_REST_API_URL || 
+function getRedisCreds() {
+  const url = process.env.UPSTASH_REDIS_REST_KV_REST_API_URL ||
+              process.env.KV_REST_API_URL ||
               process.env.UPSTASH_REDIS_REST_URL;
 
-  const token = process.env.UPSTASH_REDIS_REST_KV_REST_API_TOKEN || 
-                process.env.KV_REST_API_TOKEN || 
+  const token = process.env.UPSTASH_REDIS_REST_KV_REST_API_TOKEN ||
+                process.env.KV_REST_API_TOKEN ||
                 process.env.UPSTASH_REDIS_REST_TOKEN;
 
+  return { url, token };
+}
+
+// Sends a single Redis command as a JSON array to the Upstash REST endpoint.
+// This is the format Upstash recommends for values that may contain JSON /
+// special characters, since it avoids URL path-encoding issues entirely.
+async function redisCommand(command) {
+  const { url, token } = getRedisCreds();
   if (!url || !token) return null;
-  const res = await fetch(`${url}/get/wifi_leaderboard`, { headers: { Authorization: `Bearer ${token}` } });
-  const data = await res.json();
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(command),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Upstash error ${res.status}: ${text}`);
+  }
+
+  return res.json(); // { result: ... } or { error: ... }
+}
+
+async function getLeaderboardFromRedis() {
+  const data = await redisCommand(['GET', 'wifi_leaderboard']);
+  if (!data || data.error) return null;
   return data.result ? JSON.parse(data.result) : null;
 }
 
-async function saveToRedis(leaderboard) {
-  const url = process.env.UPSTASH_REDIS_REST_KV_REST_API_URL || 
-              process.env.KV_REST_API_URL || 
-              process.env.UPSTASH_REDIS_REST_URL;
-
-  const token = process.env.UPSTASH_REDIS_REST_KV_REST_API_TOKEN || 
-                process.env.KV_REST_API_TOKEN || 
-                process.env.UPSTASH_REDIS_REST_TOKEN;
-
-  if (!url || !token) return;
-  await fetch(`${url}/set/wifi_leaderboard`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(JSON.stringify(leaderboard)),
-  });
+async function saveLeaderboardToRedis(leaderboard) {
+  // IMPORTANT: stringify the leaderboard exactly once. The old code did
+  // JSON.stringify(JSON.stringify(leaderboard)) which double-encoded the
+  // value, so GET requests could no longer parse it back into an array.
+  await redisCommand(['SET', 'wifi_leaderboard', JSON.stringify(leaderboard)]);
 }
 
 export default async function handler(req, res) {
@@ -51,8 +68,9 @@ export default async function handler(req, res) {
 
   let leaderboard;
   try {
-    leaderboard = await getFromRedis() || [];
-  } catch {
+    leaderboard = (await getLeaderboardFromRedis()) || [];
+  } catch (e) {
+    console.error('Redis read error:', e);
     leaderboard = [];
   }
 
@@ -71,7 +89,11 @@ export default async function handler(req, res) {
   leaderboard = leaderboard.slice(0, MAX_SIZE);
   leaderboard.forEach((item, idx) => { item.rank = idx + 1; });
 
-  try { await saveToRedis(leaderboard); } catch(e) { console.error('Redis write error:', e); }
+  try {
+    await saveLeaderboardToRedis(leaderboard);
+  } catch (e) {
+    console.error('Redis write error:', e);
+  }
 
   return res.status(200).json({ success: true, leaderboard });
 }
