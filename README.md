@@ -1,13 +1,21 @@
-# 📶 WiFi Captive Portal Tester PWA (v3.0 Campus Edition)
+# 📶 WiFi Captive Portal Tester (v3.0 Campus Edition)
 
+[![Android App](https://img.shields.io/badge/Android-v3.0%20APK%20Download-00bb00?style=for-the-badge&logo=android)](https://github.com/AbhijeetArjeet/wifi-portal-tester/releases/tag/v3.0.0)
 [![Live PWA App](https://img.shields.io/badge/PWA-v3.0%20Live%20App-3b82f6?style=for-the-badge&logo=pwa)](https://abhijeetarjeet.github.io/wifi-portal-tester/)
 [![Security](https://img.shields.io/badge/Privacy-100%25%20Local-10b981?style=for-the-badge)](https://github.com/AbhijeetArjeet/wifi-portal-tester)
-[![Deployment](https://img.shields.io/badge/Vercel-Deployment-000000?style=for-the-badge&logo=vercel)](https://wifi-portal-tester.vercel.app)
 
-A modern, universal mobile-first Progressive Web App (PWA) built for student Wi-Fi auto-connection, campus captive portal validation, **Multi-Account Profile Switching**, **Auto-Detect Campus Gateways**, and a **Global Campus Wi-Fi Speed Leaderboard**.
+A modern, universal mobile-first solution built for student Wi-Fi auto-connection, campus captive portal validation, **Multi-Account Profile Switching**, and a **Global Campus Wi-Fi Speed Leaderboard**. Now available as both a **PWA** and a **Native Android App**.
 
-🌐 **Live Application URL**: [https://abhijeetarjeet.github.io/wifi-portal-tester/](https://abhijeetarjeet.github.io/wifi-portal-tester/)  
-⚡ **API Backend & Leaderboard**: Hosted on Vercel [https://wifi-portal-tester.vercel.app](https://wifi-portal-tester.vercel.app)
+---
+
+## 🤖 Android Native App (v3.0)
+
+For the most reliable campus connectivity, the **WiFi Portal Tester Native App** includes advanced features not possible in a standard browser:
+
+- **🛡️ No-Root DNS Changer**: Built-in "No-Root" DNS override engine. It intercepts system-wide DNS queries to bypass campus network DNS hijacking and censorship.
+- **🚀 Split-Tunnel VPN Engine**: Routes *only* DNS traffic through a local secure tunnel. All other app traffic (YouTube, Games, Browsing) continues over the normal high-speed route, ensuring **zero latency impact**.
+- **🔄 Background Auto-Reconnect**: Uses native Android foreground services to detect Wi-Fi portal changes instantly, even when the screen is off.
+- **🛠️ Direct APK Download**: [Download Latest APK (v3.0.0)](https://github.com/AbhijeetArjeet/wifi-portal-tester/releases/tag/v3.0.0)
 
 ---
 
@@ -63,27 +71,25 @@ The project is designed to be lightweight, serverless, and extremely fast on poo
 *Feel free to copy, modify, and share this on your LinkedIn profile!* 🚀
 
 ```text
-🚀 Project Showcase: Building a Serverless PWA for College Captive Portal Testing & Wi-Fi Analytics!
+🚀 Project Showcase: Building a Serverless PWA & Native Android App for College Captive Portal Testing!
 
 Tired of manually logging into your campus Wi-Fi captive portal every time your phone locks? I built a solution to solve this and add some fun university-wide features to the mix!
 
-Introducing 📶 WiFi Portal Tester v3.0 — a Progressive Web App (PWA) with a serverless backend and a live campus speed test leaderboard.
+Introducing 📶 WiFi Portal Tester v3.0 — now with a native Android build alongside the PWA!
 
 Here is the tech stack behind it:
-💻 Frontend: Vanilla HTML5, Modern CSS3 (Glassmorphism), and ES6+ JavaScript. No bulky frameworks, ensuring near-instant load times even on spotty college networks.
-📲 Progressive Web App (PWA): Equipped with Service Workers and Cache Storage API so the app launches and runs offline.
+📲 Native Android App: Built with Kotlin and Capacitor, featuring a custom "No-Root DNS Changer" via a split-tunnel VpnService to bypass campus DNS hijacking without affecting network speed.
+💻 Frontend: Vanilla HTML5, Modern CSS3 (Glassmorphism), and ES6+ JavaScript. No bulky frameworks, ensuring near-instant load times.
 ⚡ Serverless Backend: Hosted on Vercel Serverless Functions (Node.js) for clean API scaling.
-🗄️ Database: Upstash Redis (Serverless KV store) located in Mumbai (lowest latency) for instant leaderboard sync.
-🚀 Bandwidth Engine: Uses parallel fetch streams (8 concurrent workers) hitting Cloudflare CDN endpoints to bypass single-thread latency limits for accurate speed results.
+🗄️ Database: Upstash Redis (Serverless KV store) for instant global speed test leaderboard sync.
 
 Key Features Built:
+• No-Root DNS Override (Android Exclusive)
 • Multi-Account Switcher (save up to 3 profiles for instant swapping)
 • 1-Click captive portal Auto-Detection
-• Failsafe Auto-Reconnect with Smart Network Check (skips login on mobile data automatically to save university server calls)
-• Anti-Ban Protection (a 30s rate-limiting cooldown)
 • Public Global Campus Wi-Fi Leaderboard (Vercel + Upstash Redis integration)
 
-Check out the live code here: https://github.com/AbhijeetArjeet/wifi-portal-tester
+Check out the live code and download the APK here: https://github.com/AbhijeetArjeet/wifi-portal-tester
 
-#WebDevelopment #Javascript #PWA #Vercel #Serverless #Redis #Cloudflare #Productivity #PortfolioShowcase
+#AndroidDevelopment #Kotlin #PWA #Vercel #Serverless #Redis #WebDev #PortfolioShowcase
 ```
