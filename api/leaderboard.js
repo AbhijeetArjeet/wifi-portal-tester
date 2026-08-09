@@ -1,14 +1,8 @@
 // api/leaderboard.js — Vercel Serverless Function (GET /api/leaderboard)
-const SEED_DATA = [
-  { rank: 1, college: 'KL University', speed: 142.5, ping: 12, country: 'IN' },
-  { rank: 2, college: 'SRM IST', speed: 118.2, ping: 15, country: 'IN' },
-  { rank: 3, college: 'VIT Vellore', speed: 95.8, ping: 18, country: 'IN' },
-  { rank: 4, college: 'Manipal University', speed: 84.4, ping: 22, country: 'IN' },
-  { rank: 5, college: 'Amity University', speed: 76.1, ping: 25, country: 'IN' },
-];
+// Uses Upstash Redis for persistent global storage.
+// Empty leaderboard by default if not configured.
 
 async function getFromRedis() {
-  // Support default Upstash, Vercel KV, and the custom prefixed Vercel variables
   const url = process.env.UPSTASH_REDIS_REST_KV_REST_API_URL || 
               process.env.KV_REST_API_URL || 
               process.env.UPSTASH_REDIS_REST_URL;
@@ -39,8 +33,9 @@ export default async function handler(req, res) {
 
   try {
     const leaderboard = await getFromRedis();
-    return res.status(200).json(leaderboard || SEED_DATA);
+    return res.status(200).json(leaderboard || []);
   } catch (err) {
-    return res.status(200).json(SEED_DATA);
+    // Return empty leaderboard when database not configured
+    return res.status(200).json([]);
   }
 }

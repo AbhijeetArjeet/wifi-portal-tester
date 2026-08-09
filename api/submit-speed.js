@@ -1,11 +1,5 @@
 // api/submit-speed.js — Vercel Serverless Function (POST /api/submit-speed)
-const SEED_DATA = [
-  { rank: 1, college: 'KL University', speed: 142.5, ping: 12, country: 'IN' },
-  { rank: 2, college: 'SRM IST', speed: 118.2, ping: 15, country: 'IN' },
-  { rank: 3, college: 'VIT Vellore', speed: 95.8, ping: 18, country: 'IN' },
-  { rank: 4, college: 'Manipal University', speed: 84.4, ping: 22, country: 'IN' },
-  { rank: 5, college: 'Amity University', speed: 76.1, ping: 25, country: 'IN' },
-];
+// Accepts speed test submissions globally; stores in Upstash Redis.
 
 const MAX_SIZE = 50;
 
@@ -57,9 +51,9 @@ export default async function handler(req, res) {
 
   let leaderboard;
   try {
-    leaderboard = await getFromRedis() || [...SEED_DATA];
+    leaderboard = await getFromRedis() || [];
   } catch {
-    leaderboard = [...SEED_DATA];
+    leaderboard = [];
   }
 
   const newEntry = {
