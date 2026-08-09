@@ -1,10 +1,11 @@
 {
-  "name": "wifi-portal-tester-backend",
-  "version": "2.0.0",
-  "description": "Live Campus Wi-Fi Speed Leaderboard API for Render",
-  "main": "server.js",
+  "name": "wifi-portal-tester",
+  "version": "3.0.0",
+  "description": "Universal Campus WiFi Portal Tester - Global Speed Leaderboard PWA",
+  "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

@@ -1,98 +1,119 @@
-const CACHE_NAME = "wifi-portal-tester-v10";
+// sw.js — WiFi Portal Tester v3.0 Service Worker
+const CACHE_NAME = 'wifi-portal-tester-v11';
 const ASSETS_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icon.svg",
-  "./icon-192.png",
-  "./icon-512.png",
-  "./apple-touch-icon.png"
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png',
 ];
 
-// Install Event - Pre-cache all essential app shell files
-self.addEventListener("install", (event) => {
+// ── Install: Pre-cache all app shell assets ──────────────────────────────────
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS_TO_CACHE))
   );
   self.skipWaiting();
 });
 
-// Activate Event - Clean up old cache versions immediately
-self.addEventListener("activate", (event) => {
+// ── Activate: Remove old caches ──────────────────────────────────────────────
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      )
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-// Fetch Event - Instant Offline Loading + Background Network Refresh
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET" || event.request.url.includes("login.xml") || event.request.url.includes("fgtauth")) {
-    return;
+// ── Fetch: Serve from cache; update in background ───────────────────────────
+self.addEventListener('fetch', event => {
+  const { request } = event;
+
+  // Never intercept: login POSTs, API calls, or non-GET
+  if (request.method !== 'GET') return;
+  const url = request.url;
+  if (url.includes('/api/') || url.includes('login.xml') || url.includes('fgtauth') ||
+      url.includes('speed.cloudflare.com') || url.includes('connectivitycheck') ||
+      url.includes('generate_204') || url.includes('dns-query') || url.includes('dns.google')) {
+    return; // Let network handle these directly
   }
 
-  const isNavigation = event.request.mode === "navigate" || 
-                       (event.request.headers.get("accept") && event.request.headers.get("accept").includes("text/html"));
+  const isNav = request.mode === 'navigate' ||
+    (request.headers.get('accept') || '').includes('text/html');
 
-  if (isNavigation) {
+  if (isNav) {
     event.respondWith(
-      caches.match("./index.html").then((cachedResponse) => {
-        const fetchPromise = fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put("./index.html", responseToCache);
-                cache.put("./", responseToCache.clone());
-              });
-            }
-            return networkResponse;
-          })
-          .catch(() => null);
-
-        return cachedResponse || fetchPromise || caches.match("./");
+      caches.match('./index.html').then(cached => {
+        const net = fetch(request).then(res => {
+          if (res && res.status === 200) {
+            caches.open(CACHE_NAME).then(c => {
+              c.put('./index.html', res.clone());
+              c.put('./', res.clone());
+            });
+          }
+          return res;
+        }).catch(() => null);
+        return cached || net || caches.match('./');
       })
     );
     return;
   }
 
-  // Static Assets (icons, manifest, etc.)
+  // Static assets — stale-while-revalidate
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === "basic") {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+    caches.match(request).then(cached => {
+      const netFetch = fetch(request).then(res => {
+        if (res && res.status === 200 && (res.type === 'basic' || res.type === 'cors')) {
+          caches.open(CACHE_NAME).then(c => c.put(request, res.clone()));
         }
-        return networkResponse;
-      });
+        return res;
+      }).catch(() => null);
+      return cached || netFetch;
     })
   );
 });
 
-// Background Sync & Periodic Background Sync Support
-self.addEventListener("sync", (event) => {
-  if (event.tag === "portal-auto-login") {
+// ── Background Sync: trigger login from SW ───────────────────────────────────
+self.addEventListener('sync', event => {
+  if (event.tag === 'portal-auto-login') {
     event.waitUntil(notifyClientsToLogin());
   }
 });
 
-self.addEventListener("periodicsync", (event) => {
-  if (event.tag === "portal-keep-alive") {
+self.addEventListener('periodicsync', event => {
+  if (event.tag === 'portal-keep-alive') {
     event.waitUntil(notifyClientsToLogin());
   }
 });
 
 async function notifyClientsToLogin() {
-  const allClients = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
-  for (const client of allClients) {
-    client.postMessage({ action: "AUTO_LOGIN" });
+  const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+  for (const client of clients) {
+    client.postMessage({ action: 'AUTO_LOGIN', source: 'service-worker' });
   }
 }
+
+// ── Push Notifications (future) ───────────────────────────────────────────────
+self.addEventListener('push', event => {
+  const data = event.data ? event.data.json() : {};
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'WiFi Portal Tester', {
+      body: data.body || 'Tap to reconnect',
+      icon: './icon-192.png',
+      badge: './icon-192.png',
+    })
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then(clients => {
+      if (clients.length) return clients[0].focus();
+      return self.clients.openWindow('./');
+    })
+  );
+});

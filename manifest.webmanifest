@@ -1,12 +1,14 @@
 {
-  "name": "WiFi Portal Tester",
+  "name": "WiFi Portal Tester — Global Campus Edition",
   "short_name": "WiFi Tester",
   "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
-  "description": "Mobile-first Progressive Web App for testing captive portal Wi-Fi systems.",
+  "background_color": "#060b18",
+  "theme_color": "#060b18",
+  "description": "Universal PWA for campus captive portal auth, real Wi-Fi speed testing, global leaderboard, DNS tools and auto-reconnect.",
+  "categories": ["utilities", "productivity"],
+  "screenshots": [],
   "icons": [
     {
       "src": "icon.svg",
@@ -26,5 +28,23 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Connect Now",
+      "short_name": "Connect",
+      "description": "Instantly connect to campus Wi-Fi portal",
+      "url": "./?action=connect",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Speed Test",
+      "short_name": "Speed",
+      "description": "Run a real Wi-Fi speed test",
+      "url": "./?action=speed",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false,
+  "handle_links": "preferred"
 }
