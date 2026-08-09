@@ -1069,18 +1069,19 @@ let lastPostTimestamp = 0;
 let lastNetworkState = null; // 'open' | 'captive' | 'offline'
 const MIN_COOLDOWN_MS = 30000;
 
-// Vercel backend URL — update this after deploying to Vercel!
-// If deploying on Vercel, this can be '' (relative URL) for same-origin API calls
-const VERCEL_BACKEND_URL = '';  // empty = use relative /api/ paths (same origin on Vercel)
-// Fallback for local dev or if Vercel not configured:
-const FALLBACK_BACKEND = 'https://wifi-portal-tester.onrender.com';
+// Vercel backend URL — the site is hosted on GitHub Pages, so API calls must
+// always point at the Vercel deployment explicitly. Relative paths would
+// resolve against abhijeetarjeet.github.io, which has no /api routes.
+const VERCEL_BACKEND_URL = 'https://wifi-portal-tester.vercel.app';
 
 function getApiUrl(path) {
-  // If served from Vercel, use relative paths; otherwise fall back
-  if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
-    return FALLBACK_BACKEND + path;
+  // If this page is ever served from the Vercel domain itself, same-origin
+  // relative paths work fine. Otherwise (GitHub Pages, localhost, file://),
+  // always hit the Vercel backend explicitly.
+  if (window.location.hostname.endsWith('.vercel.app')) {
+    return path;
   }
-  return path; // Vercel serves /api/ at same origin
+  return VERCEL_BACKEND_URL + path;
 }
 
 let devTapCount = 0, devTapTimer = null, isDevModeActive = false;
@@ -1822,13 +1823,18 @@ async function loadLeaderboard() {
     const res = await fetch(getApiUrl('/api/leaderboard'), { signal: AbortSignal.timeout(6000) });
     if (res.ok) {
       const data = await res.json();
-      campusLeaderboard = Array.isArray(data) ? data : data;
+      campusLeaderboard = Array.isArray(data) ? data : [];
       leaderboardSyncBadge.textContent = '☁️ Live';
       leaderboardSyncBadge.className = 'info-chip';
     } else throw new Error('API error');
   } catch(e) {
     const raw = localStorage.getItem('wifi_tester_leaderboard');
-    if (raw) { try { campusLeaderboard = JSON.parse(raw); } catch(e2){} }
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        campusLeaderboard = Array.isArray(parsed) ? parsed : [];
+      } catch(e2){ campusLeaderboard = []; }
+    }
     leaderboardSyncBadge.textContent = '💾 Cached';
     leaderboardSyncBadge.className = 'info-chip';
   }
