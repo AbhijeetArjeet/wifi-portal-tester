@@ -359,7 +359,7 @@
     }
 
     .speed-metrics-row {
-      display: grid; grid-template-columns: repeat(2, 1fr);
+      display: grid; grid-template-columns: repeat(3, 1fr);
       width: 100%; gap: 8px;
     }
     .speed-metric-item {
@@ -536,6 +536,44 @@
       padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
       background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #6ee7b7;
     }
+
+    /* Upload Endpoint Picker */
+    .ep-picker {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-top: 4px;
+    }
+    .ep-picker.visible { display: flex; }
+    .ep-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-input);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 12px;
+    }
+    .ep-row:hover { border-color: var(--primary); background: rgba(59,130,246,0.07); }
+    .ep-row.ep-selected { border-color: var(--accent); background: rgba(16,185,129,0.08); }
+    .ep-row.ep-blocked  { opacity: 0.45; cursor: not-allowed; }
+    .ep-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: var(--text-dim); transition: background 0.3s;
+    }
+    .ep-dot.ok    { background: var(--accent); }
+    .ep-dot.fail  { background: var(--danger); }
+    .ep-dot.check { background: var(--warning); animation: pulse-dot 1s ease infinite; }
+    .ep-name  { flex: 1; font-weight: 600; color: var(--text-main); }
+    .ep-speed { font-family: var(--mono); font-size: 11px; color: var(--text-muted); min-width: 56px; text-align: right; }
+    .ep-tag   { font-size: 10px; padding: 2px 6px; border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-dim); }
   </style>
 </head>
 <body>
@@ -1655,6 +1693,8 @@ async function measureDownloadParallel(onProgress) {
   return { avgMbps: correctedMbps, totalBytes };
 }
 
+
+
 async function runRealSpeedTest() {
   btnRunSpeedTest.disabled = true;
   btnSubmitSpeed.disabled = true;
@@ -1783,13 +1823,18 @@ async function loadLeaderboard() {
     const res = await fetch(getApiUrl('/api/leaderboard'), { signal: AbortSignal.timeout(6000) });
     if (res.ok) {
       const data = await res.json();
-      campusLeaderboard = Array.isArray(data) ? data : data;
+      campusLeaderboard = Array.isArray(data) ? data : [];
       leaderboardSyncBadge.textContent = '☁️ Live';
       leaderboardSyncBadge.className = 'info-chip';
     } else throw new Error('API error');
   } catch(e) {
     const raw = localStorage.getItem('wifi_tester_leaderboard');
-    if (raw) { try { campusLeaderboard = JSON.parse(raw); } catch(e2){} }
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        campusLeaderboard = Array.isArray(parsed) ? parsed : [];
+      } catch(e2){ campusLeaderboard = []; }
+    }
     leaderboardSyncBadge.textContent = '💾 Cached';
     leaderboardSyncBadge.className = 'info-chip';
   }
@@ -1812,6 +1857,10 @@ function renderLeaderboard(myCollege) {
       <td class="lb-ping">${item.ping}ms</td>
     </tr>`;
   }).join('');
+}
+
+function saveLeaderboard() {
+  try { localStorage.setItem('wifi_tester_leaderboard', JSON.stringify(campusLeaderboard)); } catch(e) {}
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -2027,123 +2076,6 @@ function updatePasswordDisplay() {
   if (!rawSelectedPassword) { dispPassword.textContent = '--'; return; }
   dispPassword.textContent = showPasswordText ? rawSelectedPassword : '•'.repeat(Math.max(rawSelectedPassword.length, 8));
 }
-
-function resetSessionStats() {
-  stats = { attempted:0, verifiedSuccess:0, verifiedFailed:0, totalTimeMs:0 };
-  statAttempted.textContent = '0';
-  statVerifiedSuccess.textContent = '0';
-  statVerifiedFailed.textContent = '0';
-  statAvgTime.textContent = '-';
-  resultIcon.textContent = '⏱️';
-  resultText.textContent = 'Stats reset. Save credentials to begin.';
-  reconnectLog.length = 0;
-  renderLog();
-  showToast('🔄 Stats reset');
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// UI UTILITIES
-// ═══════════════════════════════════════════════════════════════════════════════
-function escapeHtml(v) {
-  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-let toastTimer;
-function showToast(msg) {
-  let t = document.getElementById('__toast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = '__toast';
-    Object.assign(t.style, {
-      position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%) translateY(20px)',
-      background:'rgba(15,23,42,0.95)', color:'#e8f0fe',
-      padding:'10px 18px', borderRadius:'24px',
-      fontSize:'13px', fontWeight:'600', fontFamily:'Inter,sans-serif',
-      boxShadow:'0 8px 24px rgba(0,0,0,0.5)', border:'1px solid rgba(59,130,246,0.3)',
-      zIndex:'9999', transition:'opacity 0.3s, transform 0.3s', opacity:'0',
-      maxWidth:'90vw', textAlign:'center', backdropFilter:'blur(12px)',
-    });
-    document.body.appendChild(t);
-  }
-  t.textContent = msg;
-  clearTimeout(toastTimer);
-  requestAnimationFrame(() => {
-    t.style.opacity = '1';
-    t.style.transform = 'translateX(-50%) translateY(0)';
-  });
-  toastTimer = setTimeout(() => {
-    t.style.opacity = '0';
-    t.style.transform = 'translateX(-50%) translateY(10px)';
-  }, 3200);
-}
-
-function fireConfetti() {
-  const colors = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#06b6d4'];
-  for (let i = 0; i < 12; i++) {
-    setTimeout(() => {
-      const p = document.createElement('div');
-      p.className = 'confetti-piece';
-      const x = 20 + Math.random() * (window.innerWidth - 40);
-      const y = window.innerHeight * 0.6;
-      Object.assign(p.style, {
-        left: x + 'px', top: y + 'px',
-        background: colors[Math.floor(Math.random() * colors.length)],
-        animationDuration: (0.8 + Math.random() * 0.8) + 's',
-        width: (6 + Math.random()*6) + 'px',
-        height: (6 + Math.random()*6) + 'px',
-        borderRadius: Math.random() > 0.5 ? '50%' : '2px',
-      });
-      document.body.appendChild(p);
-      setTimeout(() => p.remove(), 1400);
-    }, i * 60);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// PWA INSTALL + CACHE REFRESH
-// ═══════════════════════════════════════════════════════════════════════════════
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  pwaInstallBtn.style.display = 'block';
-});
-pwaInstallBtn.addEventListener('click', async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') pwaInstallBtn.style.display = 'none';
-    deferredPrompt = null;
-  }
-});
-
-function hardRefresh() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-    caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-  }
-  setTimeout(() => window.location.reload(true), 500);
-}
-function factoryReset() {
-  const confirmReset = confirm("⚠️ Factory Reset:\n\nThis will clear all saved WiFi credentials, presets, profiles, logs, and cached files to reset the app completely fresh and fetch updates.\n\nAre you sure you want to proceed?");
-  if (confirmReset) {
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-    } catch(e) {}
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    }
-    showToast("🧹 Clearing everything, reloading...");
-    setTimeout(() => {
-      window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
-    }, 800);
-  }
-}
-$('headerRefreshBtn').addEventListener('click', hardRefresh);
-$('footerRefreshBtn').addEventListener('click', hardRefresh);
-$('footerResetBtn').addEventListener('click', factoryReset);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // INITIALIZATION

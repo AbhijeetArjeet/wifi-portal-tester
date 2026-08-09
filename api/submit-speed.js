@@ -41,8 +41,17 @@ async function redisCommand(command) {
 
 async function getLeaderboardFromRedis() {
   const data = await redisCommand(['GET', 'wifi_leaderboard']);
-  if (!data || data.error) return null;
-  return data.result ? JSON.parse(data.result) : null;
+  if (!data || data.error || !data.result) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(data.result);
+  } catch {
+    return null;
+  }
+  // Guard against stale/corrupted data (e.g. from a prior double-encoding
+  // bug) so a bad value in Redis can never crash the handler. Any non-array
+  // result is treated as "no data yet" and gets overwritten on next save.
+  return Array.isArray(parsed) ? parsed : null;
 }
 
 async function saveLeaderboardToRedis(leaderboard) {
@@ -60,40 +69,48 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { college, speed, ping, upload, jitter, country } = req.body || {};
-
-  if (!college || typeof speed !== 'number' || speed <= 0 || speed > 10000) {
-    return res.status(400).json({ error: 'Invalid data' });
-  }
-
-  let leaderboard;
   try {
-    leaderboard = (await getLeaderboardFromRedis()) || [];
-  } catch (e) {
-    console.error('Redis read error:', e);
-    leaderboard = [];
+    const { college, speed, ping, upload, jitter, country } = req.body || {};
+
+    if (!college || typeof speed !== 'number' || speed <= 0 || speed > 10000) {
+      return res.status(400).json({ error: 'Invalid data' });
+    }
+
+    let leaderboard;
+    try {
+      leaderboard = (await getLeaderboardFromRedis()) || [];
+    } catch (e) {
+      console.error('Redis read error:', e);
+      leaderboard = [];
+    }
+    // Belt-and-suspenders: even if getLeaderboardFromRedis somehow returns
+    // something odd, never let a non-array reach .push()/.sort()/.slice().
+    if (!Array.isArray(leaderboard)) leaderboard = [];
+
+    const newEntry = {
+      college: String(college).substring(0, 60).replace(/[<>]/g, ''),
+      speed: parseFloat(parseFloat(speed).toFixed(2)),
+      ping: parseInt(ping) || 20,
+      upload: parseFloat(upload) || 0,
+      jitter: parseFloat(jitter) || 0,
+      country: String(country || 'IN').substring(0, 3),
+      submittedAt: new Date().toISOString(),
+    };
+
+    leaderboard.push(newEntry);
+    leaderboard.sort((a, b) => b.speed - a.speed);
+    leaderboard = leaderboard.slice(0, MAX_SIZE);
+    leaderboard.forEach((item, idx) => { item.rank = idx + 1; });
+
+    try {
+      await saveLeaderboardToRedis(leaderboard);
+    } catch (e) {
+      console.error('Redis write error:', e);
+    }
+
+    return res.status(200).json({ success: true, leaderboard });
+  } catch (err) {
+    console.error('submit-speed handler error:', err);
+    return res.status(500).json({ error: 'Internal error', message: err.message });
   }
-
-  const newEntry = {
-    college: String(college).substring(0, 60).replace(/[<>]/g, ''),
-    speed: parseFloat(parseFloat(speed).toFixed(2)),
-    ping: parseInt(ping) || 20,
-    upload: parseFloat(upload) || 0,
-    jitter: parseFloat(jitter) || 0,
-    country: String(country || 'IN').substring(0, 3),
-    submittedAt: new Date().toISOString(),
-  };
-
-  leaderboard.push(newEntry);
-  leaderboard.sort((a, b) => b.speed - a.speed);
-  leaderboard = leaderboard.slice(0, MAX_SIZE);
-  leaderboard.forEach((item, idx) => { item.rank = idx + 1; });
-
-  try {
-    await saveLeaderboardToRedis(leaderboard);
-  } catch (e) {
-    console.error('Redis write error:', e);
-  }
-
-  return res.status(200).json({ success: true, leaderboard });
 }
