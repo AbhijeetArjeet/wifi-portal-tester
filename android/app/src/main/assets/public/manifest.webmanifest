@@ -1,0 +1,50 @@
+{
+  "name": "WiFi Portal Connector — Global Campus Edition",
+  "short_name": "WiFi Connector",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#060b18",
+  "theme_color": "#060b18",
+  "description": "Universal PWA for campus captive portal auth, real Wi-Fi speed testing, global leaderboard, DNS tools and auto-reconnect.",
+  "categories": ["utilities", "productivity"],
+  "screenshots": [],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Connect Now",
+      "short_name": "Connect",
+      "description": "Instantly connect to campus Wi-Fi portal",
+      "url": "./?action=connect",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Speed Test",
+      "short_name": "Speed",
+      "description": "Run a real Wi-Fi speed test",
+      "url": "./?action=speed",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false,
+  "handle_links": "preferred"
+}
