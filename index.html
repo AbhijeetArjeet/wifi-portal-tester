@@ -1033,9 +1033,12 @@
   </details>
 
 
-  <div class="security-note">
+  <div class="security-note" style="display:flex; flex-direction:column; gap:6px; align-items:center;">
     <span>WiFi Portal Tester v3.0 · Global Campus Edition</span>
-    <button id="footerRefreshBtn" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; font-size:11px; font-family:var(--font);">Clear Cache & Reload Latest Version</button>
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <button id="footerRefreshBtn" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; font-size:11px; font-family:var(--font);">Clear Cache & Reload Latest Version</button>
+      <button id="footerResetBtn" style="background:none; border:none; color:#ef4444; cursor:pointer; text-decoration:underline; font-size:11px; font-family:var(--font); display:inline-flex; align-items:center; gap:2px;">❌ Factory Reset All Data</button>
+    </div>
   </div>
 
 </div><!-- /container -->
@@ -2164,8 +2167,26 @@ function hardRefresh() {
   }
   setTimeout(() => window.location.reload(true), 500);
 }
+function factoryReset() {
+  const confirmReset = confirm("⚠️ Factory Reset:\n\nThis will clear all saved WiFi credentials, presets, profiles, logs, and cached files to reset the app completely fresh and fetch updates.\n\nAre you sure you want to proceed?");
+  if (confirmReset) {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch(e) {}
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+    }
+    showToast("🧹 Clearing everything, reloading...");
+    setTimeout(() => {
+      window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
+    }, 800);
+  }
+}
 $('headerRefreshBtn').addEventListener('click', hardRefresh);
 $('footerRefreshBtn').addEventListener('click', hardRefresh);
+$('footerResetBtn').addEventListener('click', factoryReset);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // INITIALIZATION
