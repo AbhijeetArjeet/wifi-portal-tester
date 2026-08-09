@@ -2,12 +2,12 @@
 
 [![Live PWA App](https://img.shields.io/badge/PWA-v3.0%20Live%20App-3b82f6?style=for-the-badge&logo=pwa)](https://abhijeetarjeet.github.io/wifi-portal-tester/)
 [![Security](https://img.shields.io/badge/Privacy-100%25%20Local-10b981?style=for-the-badge)](https://github.com/AbhijeetArjeet/wifi-portal-tester)
-[![Deployment](https://img.shields.io/badge/Vercel-Deployment-000000?style=for-the-badge&logo=vercel)](https://wifi-portal-tester.vercel.app)
+[![Deployment](https://img.shields.io/badge/Supabase-Backend-3ecf8e?style=for-the-badge&logo=supabase)](https://supabase.com)
 
 A modern, universal mobile-first Progressive Web App (PWA) built for student Wi-Fi auto-connection, campus captive portal validation, **Multi-Account Profile Switching**, **Auto-Detect Campus Gateways**, and a **Global Campus Wi-Fi Speed Leaderboard**.
 
 🌐 **Live Application URL**: [https://abhijeetarjeet.github.io/wifi-portal-tester/](https://abhijeetarjeet.github.io/wifi-portal-tester/)  
-⚡ **API Backend & Leaderboard**: Hosted on Vercel [https://wifi-portal-tester.vercel.app](https://wifi-portal-tester.vercel.app)
+⚡ **Leaderboard Backend**: Supabase (PostgREST) — no custom server required
 
 ---
 
@@ -24,11 +24,15 @@ The project is designed to be lightweight, serverless, and extremely fast on poo
    - **Service Workers (`sw.js`)**: Background caching of assets for offline readiness, allowing immediate app launches even with zero internet signal.
    - **Web App Manifest (`manifest.webmanifest`)**: Enforces standalone PWA app shell, allowing installation on Android/iOS home screens.
 
-3. **Backend & Serverless Database APIs**:
-   - **Vercel Serverless Edge Functions**: Lightweight serverless functions handle API endpoints (/api/submit-speed, /api/leaderboard).
-   - **Upstash Redis (Serverless KV store)**: Ultra-low latency database deployed in the `ap-south-1` region (Mumbai) to record global speed test submissions and sync the university leaderboard instantly.
+3. **Backend & Database**:
+   - **Supabase (PostgREST)**: The leaderboard reads and writes directly against Supabase's auto-generated REST API — no custom server required. Submissions fall back to local storage if offline.
 
-4. **Multi-CDN Speed Testing**:
+4. **Native Android Shell (Capacitor)**:
+   - **Capacitor + Kotlin**: Wraps the PWA in a native Android app for features browsers can't provide.
+   - **VpnService-based DNS Override**: A no-root, split-tunnel DNS changer (same technique as Cloudflare's 1.1.1.1 app) — only DNS traffic is intercepted, browsing speed is untouched.
+   - **Native notifications & home-screen widget**: System push notifications on login result, plus a widget showing the latest speed/DNS snapshot.
+
+5. **Multi-CDN Speed Testing**:
    - **Cloudflare CDN / HTTP 3**: Leverages Cloudflare speed-measuring endpoints.
    - **Parallel Web Worker Streams**: Opens 8 concurrent TCP socket fetch connections to bypass single-thread latency limits, delivering precise bandwidth calculations matching speedtest.net accuracy.
 
@@ -36,10 +40,14 @@ The project is designed to be lightweight, serverless, and extremely fast on poo
 
 ## 🌟 Key Features
 
+- **🔑 Captive Portal Auto-Login**: Detects the network state (open / captive / offline) and logs in automatically — on launch, on network change, on device wake, or when the app is foregrounded.
 - **🏛️ Universal College Presets**: Pre-configured support for **KL University**, **SRM IST**, **VIT Vellore / Chennai**, **Manipal**, **Amity**, and others.
 - **🔍 Auto-Detect Campus Gateway**: 1-click automatic captive portal URL scanning.
-- **👥 Multi-Account Profile Switcher**: Save up to 3 student credentials with instant 1-tap swapping.
-- **🚀 Campus Wi-Fi Speed Test & Global Leaderboard**: Real-time parallel download speed testing with public global ranking submissions.
+- **👥 Multi-Account Profile Switcher**: Save multiple student credential profiles with instant 1-tap swapping.
+- **🚀 Real Wi-Fi Speed Test**: Opens 4–8 parallel connections against Cloudflare's speed CDN (mirroring how Ookla/Speedtest.net measure high-bandwidth links) to report download speed, ping, and jitter.
+- **🌍 Global Speed Leaderboard**: Submit results and see how your campus ranks worldwide, backed live by Supabase — with automatic local fallback if you're offline.
+- **🔒 Native DNS Override** *(Android app only)*: One-tap switch between Cloudflare 1.1.1.1, Google 8.8.8.8, and OpenDNS using a real no-root VPN service — browsing traffic is untouched, only DNS queries are routed through it. The PWA shows manual setup steps instead, since browsers can't do this natively.
+- **📜 Activity History**: A persistent, filterable log of every speed test, DNS check, DNS override, and portal login — stored locally, survives app restarts.
 - **🛡️ Smart Reconnect & Anti-Ban Cooldown**: Auto-detects captive portals while safely skipping login on mobile data, with a 30s throttling cooldown to prevent server/IP bans.
 - **❌ Factory Data Reset**: 1-tap browser cache and saved accounts wipe.
 
@@ -72,18 +80,19 @@ Introducing 📶 WiFi Portal Tester v3.0 — a Progressive Web App (PWA) with a 
 Here is the tech stack behind it:
 💻 Frontend: Vanilla HTML5, Modern CSS3 (Glassmorphism), and ES6+ JavaScript. No bulky frameworks, ensuring near-instant load times even on spotty college networks.
 📲 Progressive Web App (PWA): Equipped with Service Workers and Cache Storage API so the app launches and runs offline.
-⚡ Serverless Backend: Hosted on Vercel Serverless Functions (Node.js) for clean API scaling.
-🗄️ Database: Upstash Redis (Serverless KV store) located in Mumbai (lowest latency) for instant leaderboard sync.
-🚀 Bandwidth Engine: Uses parallel fetch streams (8 concurrent workers) hitting Cloudflare CDN endpoints to bypass single-thread latency limits for accurate speed results.
+🗄️ Database: Supabase (PostgREST) for instant, serverless leaderboard sync straight from the client.
+🚀 Bandwidth Engine: Uses parallel fetch streams (4–8 concurrent workers) hitting Cloudflare CDN endpoints to bypass single-thread latency limits for accurate speed results.
+📱 Native Android Shell: Capacitor + Kotlin, with a real no-root VpnService for app-wide DNS override.
 
 Key Features Built:
-• Multi-Account Switcher (save up to 3 profiles for instant swapping)
+• Multi-Account Switcher for instant profile swapping
 • 1-Click captive portal Auto-Detection
 • Failsafe Auto-Reconnect with Smart Network Check (skips login on mobile data automatically to save university server calls)
 • Anti-Ban Protection (a 30s rate-limiting cooldown)
-• Public Global Campus Wi-Fi Leaderboard (Vercel + Upstash Redis integration)
+• Public Global Campus Wi-Fi Leaderboard (Supabase-backed)
+• Native DNS Override on Android (Cloudflare / Google / OpenDNS, one tap)
 
 Check out the live code here: https://github.com/AbhijeetArjeet/wifi-portal-tester
 
-#WebDevelopment #Javascript #PWA #Vercel #Serverless #Redis #Cloudflare #Productivity #PortfolioShowcase
+#WebDevelopment #Javascript #PWA #Supabase #Serverless #Cloudflare #Android #Kotlin #Productivity #PortfolioShowcase
 ```
