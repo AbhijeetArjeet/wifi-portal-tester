@@ -1,5 +1,7 @@
-const express = require("express");
-const cors = require("cors");
+// server.js — Express backend for Render (utilizes ES Module syntax to match package.json)
+import express from 'express';
+import cors from 'cors';
+
 const app = express();
 
 app.use(cors());
