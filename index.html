@@ -1069,19 +1069,18 @@ let lastPostTimestamp = 0;
 let lastNetworkState = null; // 'open' | 'captive' | 'offline'
 const MIN_COOLDOWN_MS = 30000;
 
-// Vercel backend URL — the site is hosted on GitHub Pages, so API calls must
-// always point at the Vercel deployment explicitly. Relative paths would
-// resolve against abhijeetarjeet.github.io, which has no /api routes.
-const VERCEL_BACKEND_URL = 'https://wifi-portal-tester.vercel.app';
+// Vercel backend URL — update this after deploying to Vercel!
+// If deploying on Vercel, this can be '' (relative URL) for same-origin API calls
+const VERCEL_BACKEND_URL = '';  // empty = use relative /api/ paths (same origin on Vercel)
+// Fallback for local dev or if Vercel not configured:
+const FALLBACK_BACKEND = 'https://wifi-portal-tester.onrender.com';
 
 function getApiUrl(path) {
-  // If this page is ever served from the Vercel domain itself, same-origin
-  // relative paths work fine. Otherwise (GitHub Pages, localhost, file://),
-  // always hit the Vercel backend explicitly.
-  if (window.location.hostname.endsWith('.vercel.app')) {
-    return path;
+  // If served from Vercel, use relative paths; otherwise fall back
+  if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
+    return FALLBACK_BACKEND + path;
   }
-  return VERCEL_BACKEND_URL + path;
+  return path; // Vercel serves /api/ at same origin
 }
 
 let devTapCount = 0, devTapTimer = null, isDevModeActive = false;
@@ -1823,18 +1822,13 @@ async function loadLeaderboard() {
     const res = await fetch(getApiUrl('/api/leaderboard'), { signal: AbortSignal.timeout(6000) });
     if (res.ok) {
       const data = await res.json();
-      campusLeaderboard = Array.isArray(data) ? data : [];
+      campusLeaderboard = Array.isArray(data) ? data : data;
       leaderboardSyncBadge.textContent = '☁️ Live';
       leaderboardSyncBadge.className = 'info-chip';
     } else throw new Error('API error');
   } catch(e) {
     const raw = localStorage.getItem('wifi_tester_leaderboard');
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        campusLeaderboard = Array.isArray(parsed) ? parsed : [];
-      } catch(e2){ campusLeaderboard = []; }
-    }
+    if (raw) { try { campusLeaderboard = JSON.parse(raw); } catch(e2){} }
     leaderboardSyncBadge.textContent = '💾 Cached';
     leaderboardSyncBadge.className = 'info-chip';
   }
@@ -2076,6 +2070,123 @@ function updatePasswordDisplay() {
   if (!rawSelectedPassword) { dispPassword.textContent = '--'; return; }
   dispPassword.textContent = showPasswordText ? rawSelectedPassword : '•'.repeat(Math.max(rawSelectedPassword.length, 8));
 }
+
+function resetSessionStats() {
+  stats = { attempted:0, verifiedSuccess:0, verifiedFailed:0, totalTimeMs:0 };
+  statAttempted.textContent = '0';
+  statVerifiedSuccess.textContent = '0';
+  statVerifiedFailed.textContent = '0';
+  statAvgTime.textContent = '-';
+  resultIcon.textContent = '⏱️';
+  resultText.textContent = 'Stats reset. Save credentials to begin.';
+  reconnectLog.length = 0;
+  renderLog();
+  showToast('🔄 Stats reset');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UI UTILITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+function escapeHtml(v) {
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function showToast(msg) {
+  let t = document.getElementById('__toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = '__toast';
+    Object.assign(t.style, {
+      position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%) translateY(20px)',
+      background:'rgba(15,23,42,0.95)', color:'#e8f0fe',
+      padding:'10px 18px', borderRadius:'24px',
+      fontSize:'13px', fontWeight:'600', fontFamily:'Inter,sans-serif',
+      boxShadow:'0 8px 24px rgba(0,0,0,0.5)', border:'1px solid rgba(59,130,246,0.3)',
+      zIndex:'9999', transition:'opacity 0.3s, transform 0.3s', opacity:'0',
+      maxWidth:'90vw', textAlign:'center', backdropFilter:'blur(12px)',
+    });
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  clearTimeout(toastTimer);
+  requestAnimationFrame(() => {
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  toastTimer = setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(10px)';
+  }, 3200);
+}
+
+function fireConfetti() {
+  const colors = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#06b6d4'];
+  for (let i = 0; i < 12; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'confetti-piece';
+      const x = 20 + Math.random() * (window.innerWidth - 40);
+      const y = window.innerHeight * 0.6;
+      Object.assign(p.style, {
+        left: x + 'px', top: y + 'px',
+        background: colors[Math.floor(Math.random() * colors.length)],
+        animationDuration: (0.8 + Math.random() * 0.8) + 's',
+        width: (6 + Math.random()*6) + 'px',
+        height: (6 + Math.random()*6) + 'px',
+        borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+      });
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 1400);
+    }, i * 60);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PWA INSTALL + CACHE REFRESH
+// ═══════════════════════════════════════════════════════════════════════════════
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  pwaInstallBtn.style.display = 'block';
+});
+pwaInstallBtn.addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') pwaInstallBtn.style.display = 'none';
+    deferredPrompt = null;
+  }
+});
+
+function hardRefresh() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+    caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  }
+  setTimeout(() => window.location.reload(true), 500);
+}
+function factoryReset() {
+  const confirmReset = confirm("⚠️ Factory Reset:\n\nThis will clear all saved WiFi credentials, presets, profiles, logs, and cached files to reset the app completely fresh and fetch updates.\n\nAre you sure you want to proceed?");
+  if (confirmReset) {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch(e) {}
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+    }
+    showToast("🧹 Clearing everything, reloading...");
+    setTimeout(() => {
+      window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
+    }, 800);
+  }
+}
+$('headerRefreshBtn').addEventListener('click', hardRefresh);
+$('footerRefreshBtn').addEventListener('click', hardRefresh);
+$('footerResetBtn').addEventListener('click', factoryReset);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // INITIALIZATION

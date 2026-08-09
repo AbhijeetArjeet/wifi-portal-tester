@@ -41,16 +41,7 @@ async function redisCommand(command) {
 async function getLeaderboardFromRedis() {
   const data = await redisCommand(['GET', 'wifi_leaderboard']);
   if (data.error) throw new Error(data.error);
-  if (!data.result) return null;
-  let parsed;
-  try {
-    parsed = JSON.parse(data.result);
-  } catch {
-    return null;
-  }
-  // Guard against stale/corrupted data (e.g. from a prior double-encoding
-  // bug) so a bad value in Redis can never break the response shape.
-  return Array.isArray(parsed) ? parsed : null;
+  return data.result ? JSON.parse(data.result) : null;
 }
 
 export default async function handler(req, res) {
