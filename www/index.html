@@ -2346,43 +2346,8 @@ function factoryReset() {
     }, 800);
   }
 }
-// ═══════════════════════════════════════════════════════════════════════════════
-// APP UPDATE CHECKER (GitHub Releases & PWA Cache)
-// ═══════════════════════════════════════════════════════════════════════════════
-const CURRENT_APP_VERSION = 'v4.0.0';
-const GITHUB_REPO = 'AbhijeetArjeet/wifi-portal-tester';
-
-async function checkAppUpdates(interactive = false) {
-  try {
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
-      signal: AbortSignal.timeout(6000)
-    });
-    if (!res.ok) throw new Error('GitHub API unavailable');
-    const data = await res.json();
-    const latestTag = data.tag_name || 'v4.0.0';
-    
-    if (latestTag !== CURRENT_APP_VERSION) {
-      const isNative = window.Capacitor?.isNativePlatform?.();
-      if (isNative) {
-        showToast(`📲 New Android update ${latestTag} available on GitHub!`);
-        const confirmUpdate = confirm(`🚀 App Update Available (${latestTag})\n\nA new Android update (${latestTag}) is available on GitHub!\n\nWould you like to open the GitHub Releases page to download the latest APK?`);
-        if (confirmUpdate) {
-          window.open(`https://github.com/${GITHUB_REPO}/releases/latest`, '_system');
-        }
-      } else {
-        showToast(`🌐 Web App Update Available (${latestTag}) — Refreshing cache…`);
-        setTimeout(hardRefresh, 1200);
-      }
-    } else {
-      if (interactive) showToast(`✅ You are running the latest version (${CURRENT_APP_VERSION})`);
-    }
-  } catch(e) {
-    if (interactive) showToast(`ℹ️ Running ${CURRENT_APP_VERSION}`);
-  }
-}
-
-$('headerRefreshBtn').addEventListener('click', () => { checkAppUpdates(true); hardRefresh(); });
-$('footerRefreshBtn').addEventListener('click', () => { checkAppUpdates(true); hardRefresh(); });
+$('headerRefreshBtn').addEventListener('click', hardRefresh);
+$('footerRefreshBtn').addEventListener('click', hardRefresh);
 $('footerResetBtn').addEventListener('click', factoryReset);
 
 // ═══════════════════════════════════════════════════════════════════════════════

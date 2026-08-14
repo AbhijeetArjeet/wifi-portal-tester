@@ -1,13 +1,19 @@
 {
   "name": "wifi-portal-tester",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Universal Campus WiFi Portal Tester - Global Speed Leaderboard PWA",
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "android:sync": "node -e \"require('fs').cpSync('index.html','www/index.html');require('fs').cpSync('manifest.webmanifest','www/manifest.webmanifest');require('fs').cpSync('icon.svg','www/icon.svg');require('fs').cpSync('icon-512.png','www/icon-512.png');require('fs').cpSync('sw.js','www/sw.js');\" && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:build": "npm run android:sync && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
     "cors": "^2.8.5",
     "express": "^4.18.2"
   }

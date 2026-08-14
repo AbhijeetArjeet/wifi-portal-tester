@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">WiFi Portal Tester</string>
+    <string name="title_activity_main">WiFi Portal Tester</string>
+    <string name="package_name">com.wifiportaltester.app</string>
+    <string name="custom_url_scheme">com.wifiportaltester.app</string>
+</resources>
